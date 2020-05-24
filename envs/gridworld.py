@@ -21,8 +21,8 @@ class GridWorld(FiniteMDP):
 
     def __init__(self,
                  seed_val=42,
-                 nrows=3,
-                 ncols=3,
+                 nrows=5,
+                 ncols=5,
                  start_coord=(0, 0),
                  terminal_states = None,
                  success_probability=0.9,

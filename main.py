@@ -13,7 +13,7 @@ if __name__=="__main__":
     # Create parameters
     params = {}
     params["env"]            = Chain(10, 0.25)
-    params["n_samples_list"] = [100, 500, 1000, 5000, 10000, 15000]   # total samples (not per (s,a) ) 
+    params["n_samples_list"] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000]   # total samples (not per (s,a) ) 
     params["horizon"]        = 10
     params["gamma"]          = 1.0 
 
