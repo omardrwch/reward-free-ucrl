@@ -29,13 +29,13 @@ class BaseAgent(object):
         self.P_hat = None
         self.N_sa = None
         self.N_sas = None
-        self.trueQ, _ = run_value_iteration(self.trueR, self.trueP, self.H, self.gamma)
+        self.trueQ, _ = self.run_value_iteration(self.trueR, self.trueP, self.H, self.gamma)
 
     def reset(self):
         S, A = self.S, self.A
         self.N_sa = np.zeros((S, A))
         self.N_sas = np.zeros((S, A, S))
-        self.P_hat = np.zeros((S, A, S))
+        self.P_hat = np.ones((S, A, S)) / S
 
     def step(self, state, action):
         next_state, _, _, _ = self.env.step(action)

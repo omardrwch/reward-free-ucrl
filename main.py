@@ -7,6 +7,7 @@ from envs.gridworld import GridWorld
 from mb_qvi import MB_QVI
 from random_baseline import RandomBaseline
 from rf_ucrl import RF_UCRL
+from ucrl import UCRL
 from utils import  plot_error, plot_error_upper_bound
 
 np.random.seed(1253)
@@ -49,4 +50,7 @@ if __name__=="__main__":
     plot_error(params["n_samples_list"], errors, label="RF-UCRL without clip", fignum=1)
     plot_error_upper_bound(params["n_samples_list"], error_ucb, label="RF-UCRL without clip", fignum=2)
 
+    # Run UCRL
+    errors = experiment(UCRL, params)
+    plot_error(params["n_samples_list"], errors, label="UCRL", fignum=1)
     plt.show()
