@@ -8,9 +8,9 @@ then run value iteration with (true_reward, \hat{P}) to estimate the optimal Q-f
 """
 
 import numpy as np
-from utils import run_value_iteration
 from joblib import Parallel, delayed
 from copy import deepcopy
+from numba import jit
 
 
 class BaseAgent(object):
@@ -51,11 +51,30 @@ class BaseAgent(object):
         """
         :return: Q_hat, V_hat
         """
-        return run_value_iteration(self.trueR, self.P_hat, self.H, self.gamma)
+        return self.run_value_iteration(self.trueR, self.P_hat, self.H, self.gamma)
 
     def estimation_error(self):
         Q_hat, V_hat = self.estimate_value()
         return np.abs(Q_hat[0] - self.trueQ[0]).max()
+
+    @staticmethod
+    @jit(nopython=True)
+    def run_value_iteration(R, P, horizon, gamma):
+        S, A = R.shape
+        V = np.zeros((horizon, S))
+        Q = np.zeros((horizon, S, A))
+        for hh in range(horizon-1, -1, -1):
+            for ss in range(S):
+                max_q = -np.inf
+                for aa in range(A):
+                    q_aa = R[ss, aa]
+                    if hh < horizon - 1:
+                        q_aa += gamma*P[ss, aa, :].dot(V[hh+1, :])
+                    if q_aa > max_q:
+                        max_q = q_aa
+                    Q[hh, ss, aa] = q_aa
+                V[hh, ss] = max_q
+        return Q, V
 
     def run(self, total_samples):
         raise NotImplementedError

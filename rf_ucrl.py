@@ -3,10 +3,8 @@ Reward-Free UCRL (paper)
 """
 
 import numpy as np
-
-from base_agent import BaseAgent
-from utils import run_value_iteration
 from numba import jit
+from base_agent import BaseAgent
 
 
 class RF_UCRL(BaseAgent):
