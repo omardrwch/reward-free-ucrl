@@ -10,8 +10,8 @@ def plot_error(xdata, error_array, label, fignum):
     plt.fill_between(xdata, mean_error-std_error, mean_error+std_error, alpha=0.25)
     plt.legend()
     plt.xlabel("number of samples")
-    plt.ylabel("$||\hat{Q}^* - Q^*||_\infty$")
-    plt.title("$||\hat{Q}^* - Q^*||_\infty$ versus total number of samples")
+    plt.ylabel("$||\hat{V}^* - V^*||_\infty$")
+    plt.title("$||\hat{V}^* - V^*||_\infty$ versus total number of samples")
 
 
 def plot_error_upper_bound(xdata, error_array, label, fignum):
