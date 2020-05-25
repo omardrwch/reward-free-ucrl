@@ -1,0 +1,75 @@
+import numpy as np
+from .finitemdp import FiniteMDP
+
+class DoubleChain(FiniteMDP):
+    """
+    Double chain environment. 
+    Reward 1.0 in leftmost state and 0.0 elsewhere.
+
+    :param L:         length of the chain
+    :param fail_prob: fail probability 
+    """
+    def __init__(self, L, fail_prob):
+        assert L >= 2
+        self.L = L
+        if L % 2 == 0:
+            self.initial_state = L // 2 - 1
+        else:
+            self.initial_state = L // 2
+
+        states = list(range(L))
+        action_sets = [ [0, 1] for ss in states]
+
+        # transition probabilities
+        P = np.zeros((L, 2, L))
+        for ss in range(L):
+            for aa in range(2):
+                if(ss == 0):
+                    P[ss, 0, ss]   = 1.0-fail_prob  # action 0 = don't move
+                    P[ss, 1, ss+1] = 1.0-fail_prob  # action 1 = right
+                    P[ss, 0, ss+1] = fail_prob  
+                    P[ss, 1, ss]   = fail_prob          
+                elif(ss == L-1):
+                    P[ss, 0, ss-1] = 1.0-fail_prob  # action 0 = left
+                    P[ss, 1, ss]   = 1.0-fail_prob  # action 1 = don't move
+                    P[ss, 0, ss]   = fail_prob  
+                    P[ss, 1, ss-1] = fail_prob 
+                else:
+                    P[ss, 0, ss-1] = 1.0-fail_prob  # action 0 = left
+                    P[ss, 1, ss+1] = 1.0-fail_prob  # action 1 = right
+                    P[ss, 0, ss+1] = fail_prob  
+                    P[ss, 1, ss-1] = fail_prob 
+        
+        # init base class
+        super().__init__(states, action_sets, P)
+
+
+        # mean reward
+        S = self.observation_space.n 
+        A = self.action_space.n
+        self.mean_R  = np.zeros((S, A))
+        for ss in range(S):
+            for aa in range(A):
+                mean_r = 0
+                for ns in range(S):
+                    mean_r += self.reward_fn(ss, aa, ns)*self.P[ss, aa, ns]
+                self.mean_R[ss, aa] = mean_r
+
+    def reset(self, state=None):
+        if state is None:
+            self.state = self.initial_state 
+        else:
+            self.state = state
+        return self.state
+
+
+    def reward_fn(self, state, action, next_state):
+        """
+        Reward function
+        """
+        if (state == self.L-1 and next_state == self.L-1):
+            return 1.0
+        if (state == 0 and next_state == 0):
+            return 0.0
+        return 0.0 
+
