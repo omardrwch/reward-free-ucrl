@@ -4,7 +4,7 @@ Reward-Free UCRL (paper)
 
 import numpy as np
 from numba import jit
-from base_agent import BaseAgent
+from agents.base_agent import BaseAgent
 
 
 class RF_UCRL(BaseAgent):

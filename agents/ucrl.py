@@ -1,6 +1,6 @@
 from itertools import product
 import numpy as np
-from base_agent import BaseAgent
+from agents.base_agent import BaseAgent
 from utils import kl_upper_bound, max_expectation_under_constraint
 
 
@@ -54,7 +54,6 @@ class UCRL(BaseAgent):
         self.reset()
         # explore and gather data
         sample_count = 0
-        print("Running UCRL for ", total_samples)
         while sample_count < total_samples:
             # run episode
             state = self.env.reset()

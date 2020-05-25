@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from base_agent import experiment
+from agents.base_agent import experiment
 from envs.chain import Chain
-from envs.gridworld import GridWorld
-from mb_qvi import MB_QVI
-from random_baseline import RandomBaseline
-from rf_ucrl import RF_UCRL
-from ucrl import UCRL
+from agents.mb_qvi import MB_QVI
+from agents.random_baseline import RandomBaseline
+from agents.rf_ucrl import RF_UCRL
+from agents.ucrl import UCRL
 from utils import  plot_error, plot_error_upper_bound
 
 np.random.seed(1253)

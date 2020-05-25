@@ -7,7 +7,7 @@ Sample n transitions from each state-action pair to estimate the model \hat{P},
 then run value iteration with (true_reward, \hat{P}) to estimate the optimal Q-function
 """
 import numpy as np
-from base_agent import BaseAgent
+from agents.base_agent import BaseAgent
 
 
 class MB_QVI(BaseAgent):
