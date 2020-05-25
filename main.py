@@ -1,11 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
+from base_agent import experiment
 from envs.chain import Chain
 from envs.gridworld import GridWorld
+from mb_qvi import MB_QVI
+from random_baseline import RandomBaseline
+from rf_ucrl import RF_UCRL
 from utils import  plot_error, plot_error_upper_bound
-from mb_qvi import MB_QVI_experiment
-from random_baseline import RandomBaseline_experiment
-from rf_ucrl import RF_UCRL_experiment, RF_UCRL_experiment_worker
 
 np.random.seed(1253)
 
@@ -25,25 +27,26 @@ if __name__=="__main__":
     params["n_runs"]         = 20
     params["n_jobs"]         = 4
 
-    # Run MB_QVI
-    error_array = MB_QVI_experiment(params)
-    plot_error(params["n_samples_list"], error_array, label="MB_QVI", fignum=1)
-
     # Run RandomBaseline
-    error_array = RandomBaseline_experiment(params)
-    plot_error(params["n_samples_list"], error_array, label="RandomBaseline", fignum=1)
+    errors = experiment(RandomBaseline, params)
+    plot_error(params["n_samples_list"], errors, label="RandomBaseline", fignum=1)
+
+    # Run MB-QVI
+    errors = experiment(MB_QVI, params)
+    plot_error(params["n_samples_list"], errors, label="MB-QVI", fignum=1)
 
     # Run RF_UCRL with clipping
     params["clip"] = True
-    q_error_array, error_upper_bound_array = RF_UCRL_experiment(params)
-    plot_error(params["n_samples_list"], q_error_array, label="RF-UCRL with clip", fignum=1)
-    plot_error_upper_bound(params["n_samples_list"], error_upper_bound_array, label="RF-UCRL with clip", fignum=2)
+    results = experiment(RF_UCRL, params)
+    errors, error_ucb = results[..., 0], results[..., 1]
+    plot_error(params["n_samples_list"], errors, label="RF-UCRL with clip", fignum=1)
+    plot_error_upper_bound(params["n_samples_list"], error_ucb, label="RF-UCRL with clip", fignum=2)
 
     # Run RF_UCRL without clipping
     params["clip"] = False
-    q_error_array, error_upper_bound_array = RF_UCRL_experiment(params)
-    plot_error(params["n_samples_list"], q_error_array, label="RF-UCRL without clip", fignum=1)
-    plot_error_upper_bound(params["n_samples_list"], error_upper_bound_array, label="RF-UCRL without clip", fignum=2)
-
+    results = experiment(RF_UCRL, params)
+    errors, error_ucb = results[..., 0], results[..., 1]
+    plot_error(params["n_samples_list"], errors, label="RF-UCRL without clip", fignum=1)
+    plot_error_upper_bound(params["n_samples_list"], error_ucb, label="RF-UCRL without clip", fignum=2)
 
     plt.show()
