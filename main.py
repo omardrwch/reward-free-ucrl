@@ -7,6 +7,7 @@ from agents.mb_qvi import MB_QVI
 from agents.random_baseline import RandomBaseline
 from agents.rf_ucrl import RF_UCRL
 from agents.bpi_ucrl import BPI_UCRL
+from envs.doublechain import DoubleChain
 from utils import  plot_error, plot_error_upper_bound
 
 np.random.seed(1253)
@@ -14,7 +15,7 @@ np.random.seed(1253)
 if __name__=="__main__":
     # Create parameters
     params = {}
-    params["env"]            = Chain(10, 0.25)
+    params["env"]            = DoubleChain(15, 0.25)
     params["n_samples_list"] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000]   # total samples (not per (s,a) ) 
     params["horizon"]        = 10
     params["gamma"]          = 1.0 
