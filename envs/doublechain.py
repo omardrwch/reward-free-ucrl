@@ -71,5 +71,12 @@ class DoubleChain(FiniteMDP):
             return 1.0
         if (state == 0 and next_state == 0):
             return 0.0
-        return 0.0 
+        return 0
+
+
+class DoubleChainExp(DoubleChain):
+    def reward_fn(self, state, action, next_state):
+        if action == 1:
+            return np.exp(-(self.L - next_state) / (self.L / 4))
+        return 0
 

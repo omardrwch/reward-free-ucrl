@@ -8,14 +8,14 @@ from agents.random_baseline import RandomBaseline
 from agents.rf_ucrl import RF_UCRL
 from agents.bpi_ucrl import BPI_UCRL
 from envs.chain import Chain
-from envs.doublechain import DoubleChain
+from envs.doublechain import DoubleChain, DoubleChainExp
 from utils import plot_error, plot_error_upper_bound
 
 np.random.seed(1253)
 
 # Create parameters
 params = {}
-params["env"]            = DoubleChain(29, 0.25)
+params["env"]            = DoubleChainExp(27, 0.25)
 params["n_samples_list"] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000]   # total samples (not per (s,a) )
 params["horizon"]        = 15
 params["gamma"]          = 1.0
