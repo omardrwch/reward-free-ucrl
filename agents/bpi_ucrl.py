@@ -9,7 +9,7 @@ class BPI_UCRL(BaseAgent):
     BPI_UCRL
     """
     DELTA = 0.1
-    THRESHOLD = 1/DELTA
+    THRESHOLD = 0.1/DELTA
 
     def __init__(self, env, horizon, gamma, reward_known=True, **kwargs):
         super().__init__(env, horizon, gamma)
