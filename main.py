@@ -40,15 +40,15 @@ def estimation_error():
     results = experiment(MB_QVI, params)
     data = data.append(results, sort=False)
 
-    # Run RF_UCRL with clipping
-    params["clip"] = True
-    results = experiment(RF_UCRL, params)
-    data = data.append(results.assign(algorithm="RF-UCRL with clip"), sort=False)
+    # # Run RF_UCRL with clipping
+    # params["clip"] = True
+    # results = experiment(RF_UCRL, params)
+    # data = data.append(results.assign(algorithm="RF-UCRL with clip"), sort=False)
 
     # Run RF_UCRL without clipping
     params["clip"] = False
     results = experiment(RF_UCRL, params)
-    data = data.append(results.assign(algorithm="RF-UCRL without clip"), sort=False)
+    data = data.append(results.assign(algorithm="RF-UCRL"), sort=False)
 
     # Run BPI_UCRL
     results = experiment(BPI_UCRL, params)
@@ -60,15 +60,13 @@ def estimation_error():
 
 def show_occupations(samples=10000):
     from matplotlib import pyplot as plt
-    from mpl_toolkits.axes_grid1 import ImageGrid
-    import matplotlib.colors as colors
     del params["clip"]
     agents = {
         "Uniform": RandomBaseline(**params),
         "Optimal policy": Optimal(**params),
-        "MB_QVI": MB_QVI(**params),
-        "RF_UCRL with clip": RF_UCRL(**params, clip=True),
-        "RF_UCRL without clip": RF_UCRL(**params, clip=False),
+        "MB-QVI": MB_QVI(**params),
+        # "RF_UCRL with clip": RF_UCRL(**params, clip=True),
+        "RF-UCRL": RF_UCRL(**params, clip=False),
         "BPI-UCRL": BPI_UCRL(**params),
     }
 
@@ -82,5 +80,5 @@ def show_occupations(samples=10000):
 
 
 if __name__=="__main__":
-    # estimation_error()
     show_occupations()
+    estimation_error()
