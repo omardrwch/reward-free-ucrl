@@ -9,9 +9,11 @@ def plot_error(xdata, error_array, label, fignum):
     plt.plot(xdata, mean_error, label=label)
     plt.fill_between(xdata, mean_error-std_error, mean_error+std_error, alpha=0.25)
     plt.legend()
+    plt.xscale("log")
+    plt.yscale("log")
     plt.xlabel("number of samples")
-    plt.ylabel("$||\hat{V}^* - V^*||_\infty$")
-    plt.title("$||\hat{V}^* - V^*||_\infty$ versus total number of samples")
+    plt.ylabel("$\hat{V}^*(s_0) - V^*(s_0)$")
+    plt.title("$\hat{V}^*(s_0) - V^*(s_0)$ versus total number of samples")
 
 
 def plot_error_upper_bound(xdata, error_array, label, fignum):

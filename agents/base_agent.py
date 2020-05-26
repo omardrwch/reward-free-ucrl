@@ -54,8 +54,9 @@ class BaseAgent(object):
         return self.run_value_iteration(self.trueR, self.P_hat, self.H, self.gamma)
 
     def estimation_error(self):
+        initial_state = self.env.reset()
         Q_hat, V_hat = self.estimate_value()
-        return np.abs(V_hat[0, :] - self.trueV[0, :]).max()
+        return np.abs(V_hat[0, initial_state] - self.trueV[0, initial_state])
 
     @staticmethod
     @jit(nopython=True)
