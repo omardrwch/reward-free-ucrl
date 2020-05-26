@@ -3,6 +3,7 @@ import pandas as pd
 
 from agents.base_agent import experiment
 from agents.mb_qvi import MB_QVI
+from agents.optimal_oracle import Optimal
 from agents.random_baseline import RandomBaseline
 from agents.rf_ucrl import RF_UCRL
 from agents.bpi_ucrl import BPI_UCRL
@@ -14,7 +15,7 @@ np.random.seed(1253)
 
 # Create parameters
 params = {}
-params["env"]            = DoubleChain(31, 0.25)
+params["env"]            = DoubleChain(29, 0.25)
 params["n_samples_list"] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000]   # total samples (not per (s,a) )
 params["horizon"]        = 15
 params["gamma"]          = 1.0
@@ -57,16 +58,18 @@ def estimation_error():
     plot_error(data)
 
 
-def show_occupations(samples=1000):
+def show_occupations(samples=10000):
     from matplotlib import pyplot as plt
     from mpl_toolkits.axes_grid1 import ImageGrid
     import matplotlib.colors as colors
     del params["clip"]
     agents = {
-        "RandomBaseline": RandomBaseline(**params),
+        "Uniform": RandomBaseline(**params),
+        "Optimal policy": Optimal(**params),
         "MB_QVI": MB_QVI(**params),
         "RF_UCRL with clip": RF_UCRL(**params, clip=True),
         "RF_UCRL without clip": RF_UCRL(**params, clip=False),
+        "BPI-UCRL": BPI_UCRL(**params),
     }
 
     plt.figure("occupations")
@@ -76,32 +79,8 @@ def show_occupations(samples=1000):
         plt.semilogy(data, label=name)
     plt.legend()
     plt.show()
-    
-    # fig = plt.figure(1, (6, 6))
-    # grid = ImageGrid(fig, 111,  # similar to subplot(111)
-    #                  nrows_ncols=(4, 1),
-    #                  direction="row",
-    #                  axes_pad=1,
-    #                  add_all=True,
-    #                  label_mode="1",
-    #                  share_all=True,
-    #                  cbar_location="right",
-    #                  cbar_mode="single",
-    #                  cbar_size="1%",
-    #                  cbar_pad="3%",
-    # )
-    # for ax, (name, agent) in zip(grid, agents.items()):
-    #     agent.run(samples)
-    #     occupations = agent.N_sa.sum(axis=1, keepdims=True).T
-    #     vmax = samples/10
-    #     im = ax.imshow(occupations, origin="lower", interpolation="nearest",
-    #                    norm=colors.SymLogNorm(linthresh=1, linscale=1, vmax=vmax),
-    #                    cmap=plt.cm.coolwarm)
-    #     ax.cax.colorbar(im)
-    #     ax.set_title(name)
-    # plt.show()
 
 
 if __name__=="__main__":
-    estimation_error()
+    # estimation_error()
     show_occupations()
