@@ -58,8 +58,9 @@ def estimation_error():
     plot_error(data)
 
 
-def show_occupations(samples=10000):
+def show_occupations(samples=1000, runs=20):
     from matplotlib import pyplot as plt
+    import seaborn as sns
     del params["clip"]
     agents = {
         "Uniform": RandomBaseline(**params),
@@ -70,15 +71,20 @@ def show_occupations(samples=10000):
         "BPI-UCRL": BPI_UCRL(**params),
     }
 
+    data = pd.DataFrame(columns=["algorithm", "samples", "states", "occupations"])
+    for _ in range(runs):
+        for name, agent in agents.items():
+            agent.run(samples)
+            df = pd.DataFrame({"occupations": agent.N_sa.sum(axis=1),
+                               "states": np.arange(agent.N_sa.shape[0])})
+            df["algorithm"] = name
+            df["samples"] = samples
+            data = pd.concat([df, data], sort=False)
     plt.figure("occupations")
-    for name, agent in agents.items():
-        agent.run(samples)
-        data = agent.N_sa.sum(axis=1) 
-        plt.semilogy(data, label=name)
-    plt.legend()
+    sns.lineplot(x="states", y="occupations", hue="algorithm", data=data)
     plt.show()
 
 
-if __name__=="__main__":
+if __name__== "__main__":
     show_occupations()
-    estimation_error()
+    # estimation_error()
