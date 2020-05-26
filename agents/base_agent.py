@@ -11,7 +11,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from copy import deepcopy
 from numba import jit
-
+import pandas as pd
 
 class BaseAgent(object):
     """
@@ -81,7 +81,11 @@ class BaseAgent(object):
         raise NotImplementedError
 
     def run_multiple_n(self, n_list):
-        return [self.run(n) for n in n_list]
+        return pd.DataFrame({
+            "algorithm": [self.__class__.__name__] * len(n_list),
+            "samples": n_list,
+            "error": [self.run(n) for n in n_list]
+        })
 
 
 def experiment_worker(agent_class, params):
@@ -95,4 +99,4 @@ def experiment(agent_class, params):
     """
     output = Parallel(n_jobs=params["n_jobs"], verbose=5)(
         delayed(experiment_worker)(agent_class, params) for _ in range(params["n_runs"]))
-    return np.array(output)
+    return pd.concat(output, ignore_index=True)

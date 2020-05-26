@@ -5,6 +5,7 @@ Reward-Free UCRL (paper)
 import numpy as np
 from numba import jit
 from agents.base_agent import BaseAgent
+import pandas as pd
 
 
 class RF_UCRL(BaseAgent):
@@ -70,3 +71,12 @@ class RF_UCRL(BaseAgent):
         initial_state = self.env.reset()
         error_upper_bound = self.F[0, initial_state]  # max_a E[0, initial_state, a]
         return error, error_upper_bound
+
+    def run_multiple_n(self, n_list):
+        errors, error_ucbs = zip(*[self.run(n) for n in n_list])
+        return pd.DataFrame({
+            "algorithm": [self.__class__.__name__] * len(n_list),
+            "samples": n_list,
+            "error": errors,
+            "error-ucb": error_ucbs
+        })

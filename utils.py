@@ -1,19 +1,18 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+
+sns.set()
 
 
-def plot_error(xdata, error_array, label, fignum):
-    plt.figure(fignum)
-    mean_error = error_array.mean(axis=0)
-    std_error  = error_array.std(axis=0)
-    plt.plot(xdata, mean_error, label=label)
-    plt.fill_between(xdata, mean_error-std_error, mean_error+std_error, alpha=0.25)
-    plt.legend()
-    plt.xscale("log")
-    plt.yscale("log")
+def plot_error(data):
+    f, ax = plt.subplots()
+    ax.set(xscale="log", yscale="log")
+    sns.lineplot(x="samples", y="error", hue="algorithm", data=data, ax=ax)
     plt.xlabel("number of samples")
     plt.ylabel("$\hat{V}^*(s_0) - V^*(s_0)$")
     plt.title("$\hat{V}^*(s_0) - V^*(s_0)$ versus total number of samples")
+    plt.show()
 
 
 def plot_error_upper_bound(xdata, error_array, label, fignum):

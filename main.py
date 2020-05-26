@@ -1,14 +1,14 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 
 from agents.base_agent import experiment
-from envs.chain import Chain
 from agents.mb_qvi import MB_QVI
 from agents.random_baseline import RandomBaseline
 from agents.rf_ucrl import RF_UCRL
 from agents.bpi_ucrl import BPI_UCRL
+from envs.chain import Chain
 from envs.doublechain import DoubleChain
-from utils import  plot_error, plot_error_upper_bound
+from utils import plot_error, plot_error_upper_bound
 
 np.random.seed(1253)
 
@@ -28,29 +28,28 @@ if __name__=="__main__":
     params["n_runs"]         = 20
     params["n_jobs"]         = 4
 
+    data = pd.DataFrame(columns=['algorithm', 'samples', 'error', 'error-ucb'])
+
     # Run RandomBaseline
-    errors = experiment(RandomBaseline, params)
-    plot_error(params["n_samples_list"], errors, label="RandomBaseline", fignum=1)
+    results = experiment(RandomBaseline, params)
+    data = data.append(results, sort=False)
 
     # Run MB-QVI
-    errors = experiment(MB_QVI, params)
-    plot_error(params["n_samples_list"], errors, label="MB-QVI", fignum=1)
+    results = experiment(MB_QVI, params)
+    data = data.append(results, sort=False)
 
     # Run RF_UCRL with clipping
     params["clip"] = True
     results = experiment(RF_UCRL, params)
-    errors, error_ucb = results[..., 0], results[..., 1]
-    plot_error(params["n_samples_list"], errors, label="RF-UCRL with clip", fignum=1)
-    plot_error_upper_bound(params["n_samples_list"], error_ucb, label="RF-UCRL with clip", fignum=2)
+    data = data.append(results.assign(algorithm="RF-UCRL with clip"), sort=False)
 
     # Run RF_UCRL without clipping
     params["clip"] = False
     results = experiment(RF_UCRL, params)
-    errors, error_ucb = results[..., 0], results[..., 1]
-    plot_error(params["n_samples_list"], errors, label="RF-UCRL without clip", fignum=1)
-    plot_error_upper_bound(params["n_samples_list"], error_ucb, label="RF-UCRL without clip", fignum=2)
-    # Run BPI_UCRL
-    errors = experiment(BPI_UCRL, params)
-    plot_error(params["n_samples_list"], errors, label="BPI_UCRL", fignum=1)
+    data = data.append(results.assign(algorithm="RF-UCRL without clip"), sort=False)
 
-    plt.show()
+    # Run BPI_UCRL
+    results = experiment(BPI_UCRL, params)
+    data = data.append(results, sort=False)
+
+    plot_error(data)
