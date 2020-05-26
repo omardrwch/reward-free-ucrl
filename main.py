@@ -15,7 +15,7 @@ np.random.seed(1253)
 
 # Create parameters
 params = {}
-params["env"]            = DoubleChainExp(27, 0.25)
+params["env"]            = DoubleChainExp(29, 0.1)
 params["n_samples_list"] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000]   # total samples (not per (s,a) )
 params["horizon"]        = 15
 params["gamma"]          = 1.0
