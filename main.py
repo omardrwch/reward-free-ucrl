@@ -6,7 +6,7 @@ from envs.chain import Chain
 from agents.mb_qvi import MB_QVI
 from agents.random_baseline import RandomBaseline
 from agents.rf_ucrl import RF_UCRL
-from agents.ucrl import UCRL
+from agents.bpi_ucrl import BPI_UCRL
 from utils import  plot_error, plot_error_upper_bound
 
 np.random.seed(1253)
@@ -48,8 +48,8 @@ if __name__=="__main__":
     errors, error_ucb = results[..., 0], results[..., 1]
     plot_error(params["n_samples_list"], errors, label="RF-UCRL without clip", fignum=1)
     plot_error_upper_bound(params["n_samples_list"], error_ucb, label="RF-UCRL without clip", fignum=2)
+    # Run BPI_UCRL
+    errors = experiment(BPI_UCRL, params)
+    plot_error(params["n_samples_list"], errors, label="BPI_UCRL", fignum=1)
 
-    # Run UCRL
-    errors = experiment(UCRL, params)
-    plot_error(params["n_samples_list"], errors, label="UCRL", fignum=1)
     plt.show()

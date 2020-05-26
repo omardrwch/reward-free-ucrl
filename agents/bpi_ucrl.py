@@ -4,9 +4,9 @@ from agents.base_agent import BaseAgent
 from utils import kl_upper_bound, max_expectation_under_constraint
 
 
-class UCRL(BaseAgent):
+class BPI_UCRL(BaseAgent):
     """
-    UCRL
+    BPI_UCRL
     """
     DELTA = 0.1
     THRESHOLD = 1/DELTA
