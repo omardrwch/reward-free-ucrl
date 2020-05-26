@@ -1,7 +1,7 @@
 from itertools import product
 import numpy as np
 from agents.base_agent import BaseAgent
-from utils import kl_upper_bound, max_expectation_under_constraint
+from utils import kl_upper_bound, max_expectation_under_constraint, random_argmax
 
 
 class BPI_UCRL(BaseAgent):
@@ -55,7 +55,7 @@ class BPI_UCRL(BaseAgent):
             state = self.env.reset()
             for hh in range(self.H):
                 sample_count += 1
-                action = self.q_ucb[hh, state, :].argmax()
+                action = random_argmax(self.q_ucb[hh, state, :])
                 state = self.step(state, action)
             self.compute_value_upper_bound()
         return self.estimation_error()

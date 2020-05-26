@@ -196,3 +196,22 @@ def max_expectation_under_constraint(f, q, c, eps=1e-2, display=False):
     else:
         p_star[x_plus] = beta * q_p / (lambda_ - f_p)
     return p_star
+
+
+def all_argmax(x):
+    """
+    :param x: a set
+    :return: the list of indexes of all maximums of x
+    """
+    m = np.amax(x)
+    return np.nonzero(x == m)[0]
+
+
+def random_argmax(x):
+    """
+        Randomly tie-breaking arg max
+    :param x: an array
+    :return: a random index among the maximums
+    """
+    indices = all_argmax(x)
+    return np.random.choice(indices)

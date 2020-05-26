@@ -7,6 +7,8 @@ from numba import jit
 from agents.base_agent import BaseAgent
 import pandas as pd
 
+from utils import random_argmax
+
 
 class RF_UCRL(BaseAgent):
     DELTA = 0.1    # fixed value of delta, for simplicity
@@ -59,7 +61,7 @@ class RF_UCRL(BaseAgent):
             state = self.env.reset()
             for hh in range(self.H):
                 sample_count += 1
-                action = self.E[hh, state, :].argmax()
+                action = random_argmax(self.E[hh, state, :])
                 state = self.step(state, action)
 
             # Compute error upper bound

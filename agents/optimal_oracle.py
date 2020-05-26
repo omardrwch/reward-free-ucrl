@@ -1,4 +1,5 @@
 from agents.base_agent import BaseAgent
+from utils import random_argmax
 
 
 class Optimal(BaseAgent):
@@ -12,6 +13,6 @@ class Optimal(BaseAgent):
             state = self.env.reset()
             for h in range(self.H):
                 sample_count += 1
-                action = self.trueQ[h, state].argmax()
+                action = random_argmax(self.trueQ[h, state])
                 state = self.step(state, action)
         return self.estimation_error()
