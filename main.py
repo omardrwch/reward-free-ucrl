@@ -69,37 +69,12 @@ def show_occupations(samples=1000):
         "RF_UCRL without clip": RF_UCRL(**params, clip=False),
     }
 
-<<<<<<< HEAD
     plt.figure("occupations")
     for name, agent in agents.items():
         agent.run(samples)
         data = agent.N_sa.sum(axis=1) 
         plt.semilogy(data, label=name)
     plt.legend()
-=======
-    fig = plt.figure(1, (6, 6))
-    grid = ImageGrid(fig, 111,  # similar to subplot(111)
-                     nrows_ncols=(4, 1),
-                     direction="row",
-                     axes_pad=1,
-                     add_all=True,
-                     label_mode="1",
-                     share_all=True,
-                     cbar_location="right",
-                     cbar_mode="single",
-                     cbar_size="1%",
-                     cbar_pad="3%",
-    )
-    for ax, (name, agent) in zip(grid, agents.items()):
-        agent.run(samples)
-        occupations = agent.N_sa.sum(axis=1, keepdims=True).T
-        vmax = samples/10
-        im = ax.imshow(occupations, origin="lower", interpolation="nearest",
-                       norm=colors.SymLogNorm(linthresh=1, linscale=1, vmax=vmax),
-                       cmap=plt.cm.coolwarm)
-        ax.cax.colorbar(im)
-        ax.set_title(name)
->>>>>>> 1db8cc6835dcf425a3d9f95340ea9ff81cd4ef1d
     plt.show()
     
     # fig = plt.figure(1, (6, 6))
@@ -129,8 +104,4 @@ def show_occupations(samples=1000):
 
 if __name__=="__main__":
     estimation_error()
-<<<<<<< HEAD
     show_occupations()
-=======
-    show_occupations()
->>>>>>> 1db8cc6835dcf425a3d9f95340ea9ff81cd4ef1d
