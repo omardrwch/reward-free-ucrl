@@ -1,4 +1,5 @@
 from agents.base_agent import BaseAgent
+import numpy as np
 
 
 class RandomBaseline(BaseAgent):
@@ -16,6 +17,6 @@ class RandomBaseline(BaseAgent):
             state = self.env.reset()
             for _ in range(self.H):
                 sample_count += 1
-                action = self.env.action_space.sample()
+                action = np.random.randint(self.env.action_space.n)
                 state = self.step(state, action)
         return self.estimation_error()
