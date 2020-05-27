@@ -30,30 +30,32 @@ params["bonus_scale_factor"] = 1.0
 params["clip"] = False
 
 # n_runs and n_jobs
-params["n_runs"]         = 46
-params["n_jobs"]         = 46
+params["n_runs"]         = 48
+params["n_jobs"]         = 48
 
 
 def estimation_error():
-    data = pd.DataFrame(columns=['algorithm', 'samples', 'error', 'error-ucb'])
+    data = pd.read_csv('data.csv')
+    if data.empty:
+        data = pd.DataFrame(columns=['algorithm', 'samples', 'error', 'error-ucb'])
 
-    # Run RandomBaseline
-    results = experiment(RandomBaseline, params)
-    data = data.append(results, sort=False)
+        # Run RandomBaseline
+        results = experiment(RandomBaseline, params)
+        data = data.append(results, sort=False)
 
-    # Run MB-QVI
-    results = experiment(MB_QVI, params)
-    data = data.append(results, sort=False)
+        # Run MB-QVI
+        results = experiment(MB_QVI, params)
+        data = data.append(results, sort=False)
 
-    # Run RF_UCRL
-    results = experiment(RF_UCRL, params)
-    data = data.append(results.assign(algorithm="RF-UCRL"), sort=False)
+        # Run RF_UCRL
+        results = experiment(RF_UCRL, params)
+        data = data.append(results.assign(algorithm="RF-UCRL"), sort=False)
 
-    # Run BPI_UCRL
-    results = experiment(BPI_UCRL, params)
-    data = data.append(results, sort=False)
+        # Run BPI_UCRL
+        results = experiment(BPI_UCRL, params)
+        data = data.append(results, sort=False)
 
-    data.to_csv('data.csv')
+        data.to_csv('data.csv')
     plot_error(data)
 
 
