@@ -3,6 +3,9 @@ import numpy as np
 import seaborn as sns
 
 sns.set()
+from matplotlib import rc
+rc('font', **{'family': 'serif', 'serif': ['Palatino']})
+rc('text', usetex=True)
 
 
 def plot_error(data):
@@ -10,10 +13,10 @@ def plot_error(data):
     ax.set(xscale="log", yscale="log")
     sns.lineplot(x="samples", y="error", hue="algorithm", data=data, ax=ax)
     plt.xlabel("Number of samples")
-    plt.ylabel("$\hat{V}^*(s_0) - V^*(s_0)$")
-    plt.title("$\hat{V}^*(s_0) - V^*(s_0)$ versus total number of samples")
-    plt.show()
+    plt.ylabel("$|\hat{V}^*(s_0) - V^*(s_0)|$")
+    # plt.title("$|\hat{V}^*(s_0) - V^*(s_0)|$ versus total number of samples")
     plt.savefig("approximation_error.pdf")
+    plt.show()
 
 
 def plot_error_upper_bound(xdata, error_array, label, fignum):

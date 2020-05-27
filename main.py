@@ -80,7 +80,7 @@ def show_occupations(samples=1000):
     data = pd.concat(output, ignore_index=True)
     sns.lineplot(x="states", y="occupations", hue="algorithm", data=data)
     plt.yscale("log")
-    plt.title("State occupations for {} samples".format(samples))
+    # plt.title("State occupations for {} samples".format(samples))
     plt.xlabel("State $s$")
     plt.ylabel("Number of visits $N(s)$")
     plt.savefig("occupations.pdf")
