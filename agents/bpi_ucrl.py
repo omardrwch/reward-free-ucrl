@@ -8,6 +8,7 @@ class BPI_UCRL(BaseAgent):
     """
     BPI_UCRL
     """
+    name = "BPI-UCRL"
     DELTA = 0.1
     THRESHOLD = 0.1/DELTA
 

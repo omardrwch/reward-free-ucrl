@@ -11,6 +11,7 @@ from utils import random_argmax
 
 
 class RF_UCRL(BaseAgent):
+    name = "RF-UCRL"
     DELTA = 0.1    # fixed value of delta, for simplicity
 
     def __init__(self, env, horizon, gamma, clip, bonus_scale_factor, **kwargs):
@@ -77,7 +78,7 @@ class RF_UCRL(BaseAgent):
     def run_multiple_n(self, n_list):
         errors, error_ucbs = zip(*[self.run(n) for n in n_list])
         return pd.DataFrame({
-            "algorithm": [self.__class__.__name__] * len(n_list),
+            "algorithm": [self.name] * len(n_list),
             "samples": n_list,
             "error": errors,
             "error-ucb": error_ucbs

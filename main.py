@@ -62,26 +62,30 @@ def show_occupations(samples=1000, runs=20):
     from matplotlib import pyplot as plt
     import seaborn as sns
     del params["clip"]
-    agents = {
-        "Uniform": RandomBaseline(**params),
-        "Optimal policy": Optimal(**params),
-        "MB-QVI": MB_QVI(**params),
-        # "RF_UCRL with clip": RF_UCRL(**params, clip=True),
-        "RF-UCRL": RF_UCRL(**params, clip=False),
-        "BPI-UCRL": BPI_UCRL(**params),
-    }
+    agents = [
+        RandomBaseline(**params),
+        Optimal(**params),
+        MB_QVI(**params),
+        RF_UCRL(**params, clip=True),
+        RF_UCRL(**params, clip=False),
+        BPI_UCRL(**params),
+    ]
 
     data = pd.DataFrame(columns=["algorithm", "samples", "states", "occupations"])
     for _ in range(runs):
-        for name, agent in agents.items():
+        for agent in agents:
             agent.run(samples)
             df = pd.DataFrame({"occupations": agent.N_sa.sum(axis=1),
                                "states": np.arange(agent.N_sa.shape[0])})
-            df["algorithm"] = name
+            df["algorithm"] = agent.name
             df["samples"] = samples
             data = pd.concat([df, data], sort=False)
     plt.figure("occupations")
     sns.lineplot(x="states", y="occupations", hue="algorithm", data=data)
+    plt.title("State occupations")
+    plt.xlabel("State $s$")
+    plt.xlabel("Number of visits $N(s)$")
+    plt.savefig("occupations.pdf")
     plt.show()
 
 

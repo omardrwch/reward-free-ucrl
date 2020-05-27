@@ -1,6 +1,7 @@
 import numpy as np
 from .finitemdp import FiniteMDP
 
+
 class DoubleChain(FiniteMDP):
     """
     Double chain environment. 

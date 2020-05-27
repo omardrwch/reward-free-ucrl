@@ -9,10 +9,11 @@ def plot_error(data):
     f, ax = plt.subplots()
     ax.set(xscale="log", yscale="log")
     sns.lineplot(x="samples", y="error", hue="algorithm", data=data, ax=ax)
-    plt.xlabel("number of samples")
+    plt.xlabel("Number of samples")
     plt.ylabel("$\hat{V}^*(s_0) - V^*(s_0)$")
     plt.title("$\hat{V}^*(s_0) - V^*(s_0)$ versus total number of samples")
     plt.show()
+    plt.savefig("approximation_error.pdf")
 
 
 def plot_error_upper_bound(xdata, error_array, label, fignum):

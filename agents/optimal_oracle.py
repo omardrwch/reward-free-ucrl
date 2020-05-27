@@ -3,9 +3,8 @@ from utils import random_argmax
 
 
 class Optimal(BaseAgent):
-    """
-    Optimal policy
-    """
+    name = "Optimal policy"
+
     def run(self, total_samples):
         self.reset()
         sample_count = 0

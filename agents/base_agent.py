@@ -13,10 +13,13 @@ from copy import deepcopy
 from numba import jit
 import pandas as pd
 
+
 class BaseAgent(object):
     """
         Base agent collecting statistics
     """
+    name = "Base agent"
+
     def __init__(self, env, horizon, gamma, **kwargs):
         self.env = deepcopy(env)
         self.env.seed(np.random.randint(32768))      # <--------- important to seed the environment
@@ -82,7 +85,7 @@ class BaseAgent(object):
 
     def run_multiple_n(self, n_list):
         return pd.DataFrame({
-            "algorithm": [self.__class__.__name__] * len(n_list),
+            "algorithm": [self.name] * len(n_list),
             "samples": n_list,
             "error": [self.run(n) for n in n_list]
         })

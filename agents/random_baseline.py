@@ -7,6 +7,8 @@ class RandomBaseline(BaseAgent):
 
     Random exploration policy
     """
+    name = "Random policy"
+
     def run(self, total_samples):
         self.reset()
         sample_count = 0
