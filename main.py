@@ -3,8 +3,6 @@ from itertools import product
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from matplotlib import pyplot as plt
-import seaborn as sns
 
 from agents.base_agent import experiment
 from agents.mb_qvi import MB_QVI
@@ -14,29 +12,33 @@ from agents.rf_ucrl import RF_UCRL
 from agents.bpi_ucrl import BPI_UCRL
 from envs.chain import Chain
 from envs.doublechain import DoubleChain, DoubleChainExp
-from utils import plot_error, plot_error_upper_bound
+from envs.gridworld import GridWorld
+from utils import plot_error, plot_occupancies
 
 np.random.seed(1253)
 
 # Create parameters
-params = {}
-params["env"]            = DoubleChainExp(31, 0.1)
-params["n_samples_list"] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000]   # total samples (not per (s,a) )
-params["horizon"]        = 16
-params["gamma"]          = 1.0
-
-# extra params for RF_UCRL
-params["bonus_scale_factor"] = 1.0
-params["clip"] = False
-
-# n_runs and n_jobs
-params["n_runs"]         = 48
-params["n_jobs"]         = 48
+params = {
+    # "env": DoubleChainExp(31, 0.1),
+    "env": GridWorld(nrows=6, ncols=6),
+    "n_samples_list": np.logspace(2, 4, 9, dtype=np.int32),
+    "horizon": 16,
+    "gamma": 1.0,
+    "bonus_scale_factor": 1.0,
+    # extra params for RF_UCRL
+    "clip": False,
+    # n_runs and n_jobs
+    "n_runs": 46,
+    "n_jobs": 46
+}
 
 
 def estimation_error():
-    data = pd.read_csv('data.csv')
-    if data.empty:
+    try:
+        data = pd.read_csv('data.csv')
+        if data.empty:
+            raise FileNotFoundError
+    except FileNotFoundError:
         data = pd.DataFrame(columns=['algorithm', 'samples', 'error', 'error-ucb'])
 
         # Run RandomBaseline
@@ -59,7 +61,7 @@ def estimation_error():
     plot_error(data)
 
 
-def show_occupations(samples=1000):
+def show_occupancies(samples=1000):
     agents = [
         RandomBaseline(**params),
         MB_QVI(**params),
@@ -69,10 +71,10 @@ def show_occupations(samples=1000):
     ]
 
     def occupancies(agent):
-        agent.env.seed(np.random.randint(2**32 - 1))
+        agent.env.seed(np.random.randint(32768))
         agent.run(samples)
-        df = pd.DataFrame({"occupations": agent.N_sa.sum(axis=1),
-                           "states": np.arange(agent.N_sa.shape[0])})
+        df = pd.DataFrame({"occupancy": agent.N_sa.sum(axis=1),
+                           "state": np.arange(agent.N_sa.shape[0])})
         df["algorithm"] = agent.name
         df["samples"] = samples
         return df
@@ -80,15 +82,9 @@ def show_occupations(samples=1000):
     output = Parallel(n_jobs=params["n_jobs"], verbose=5)(
         delayed(occupancies)(agent) for agent, _ in product(agents, range(params["n_runs"])))
     data = pd.concat(output, ignore_index=True)
-    sns.lineplot(x="states", y="occupations", hue="algorithm", data=data)
-    plt.yscale("log")
-    # plt.title("State occupations for {} samples".format(samples))
-    plt.xlabel("State $s$")
-    plt.ylabel("Number of visits $N(s)$")
-    plt.savefig("occupations.pdf")
-    plt.show()
+    plot_occupancies(data, agents[0].env)
 
 
 if __name__== "__main__":
-    show_occupations()
+    show_occupancies()
     estimation_error()

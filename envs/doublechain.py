@@ -1,8 +1,9 @@
 import numpy as np
-from .finitemdp import FiniteMDP
+
+from envs.chain import Chain
 
 
-class DoubleChain(FiniteMDP):
+class DoubleChain(Chain):
     """
     Double chain environment. 
     Reward 1.0 in leftmost state and 0.0 elsewhere.

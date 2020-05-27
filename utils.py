@@ -1,14 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import pandas as pd
+import gym
+
+import matplotlib.colors as colors
+from envs.gridworld import GridWorld
 
 sns.set()
 from matplotlib import rc
-rc('font', **{'family': 'serif', 'serif': ['Palatino']})
-rc('text', usetex=True)
+# rc('font', **{'family': 'serif', 'serif': ['Palatino']})
+# rc('text', usetex=True)
 
 
-def plot_error(data):
+def plot_error(data: pd.DataFrame) -> None:
     f, ax = plt.subplots()
     ax.set(xscale="log", yscale="log")
     sns.lineplot(x="samples", y="error", hue="algorithm", data=data, ax=ax)
@@ -16,18 +21,64 @@ def plot_error(data):
     plt.ylabel("$|\hat{V}^*(s_0) - V^*(s_0)|$")
     # plt.title("$|\hat{V}^*(s_0) - V^*(s_0)|$ versus total number of samples")
     plt.savefig("approximation_error.pdf")
+    plt.savefig("approximation_error.png")
     plt.show()
 
 
 def plot_error_upper_bound(xdata, error_array, label, fignum):
     plt.figure(fignum)
     mean_error = error_array.mean(axis=0)
-    std_error  = error_array.std(axis=0)
+    std_error = error_array.std(axis=0)
     plt.plot(xdata, mean_error, label=label)
     plt.fill_between(xdata, mean_error-std_error, mean_error+std_error, alpha=0.25)
     plt.legend()
     plt.xlabel("number of samples")
     plt.title("$\max_a E_0(s_1, a)$")
+
+
+def plot_occupancies(data: pd.DataFrame, env: gym.Env) -> None:
+    if isinstance(env, GridWorld):
+        plot_2d_occupancies(data, env)
+    else:
+        plot_1d_occupancies(data)
+
+
+def plot_1d_occupancies(data):
+    sns.lineplot(x="state", y="occupancy", hue="algorithm", data=data)
+    plt.yscale("log")
+    # plt.title("State occupancies for {} samples".format(samples))
+    plt.xlabel("State $s$")
+    plt.ylabel("Number of visits $N(s)$")
+    plt.savefig("occupancies.pdf")
+    plt.savefig("occupancies.png")
+    plt.show()
+
+
+def plot_2d_occupancies(data: pd.DataFrame, env: GridWorld) -> None:
+    data = data.groupby(['algorithm', 'state'], as_index=False, sort=False).mean()
+    v_max = data["occupancy"].max()
+    algorithms = data.algorithm.unique()
+
+    fig = plt.figure(figsize=(10, 7))
+    rows = len(algorithms) // 2
+    cols = np.ceil(len(algorithms) / rows).astype(int)
+    for i, algorithm in enumerate(algorithms):
+        ax = fig.add_subplot(rows, cols, i+1)
+        df = data[data["algorithm"] == algorithm]
+        occupancies = np.zeros((env.nrows, env.ncols))
+        for _, row in df.iterrows():
+            occupancies[env.index2coord[row.state]] = row.occupancy
+        im = ax.imshow(occupancies,
+            norm=colors.SymLogNorm(linthresh=1, linscale=1, vmin=0, vmax=v_max),
+            cmap=plt.cm.coolwarm)
+        ax.set_title(algorithm)
+    if len(algorithms) < rows * cols:
+        ax = fig.add_subplot(rows, cols, rows*cols)
+        ax.axis('off')
+    fig.colorbar(im, ax=ax)
+    plt.savefig("2d_occupancies.pdf")
+    plt.savefig("2d_occupancies.png")
+    plt.show()
 
 
 def kullback_leibler(p, q):

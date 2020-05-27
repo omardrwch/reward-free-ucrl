@@ -24,11 +24,11 @@ class GridWorld(FiniteMDP):
                  nrows=5,
                  ncols=5,
                  start_coord=(0, 0),
-                 terminal_states = None,
+                 terminal_states=None,
                  success_probability=0.9,
                  reward_at=None,
                  walls=None,
-                 default_reward= 0.0,
+                 default_reward=0,
                  track=False):
 
         # Grid dimensions
