@@ -1,5 +1,10 @@
+from itertools import product
+
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
+from matplotlib import pyplot as plt
+import seaborn as sns
 
 from agents.base_agent import experiment
 from agents.mb_qvi import MB_QVI
@@ -15,14 +20,14 @@ np.random.seed(1253)
 
 # Create parameters
 params = {}
-params["env"]            = DoubleChainExp(29, 0.1)
+params["env"]            = DoubleChainExp(31, 0.1)
 params["n_samples_list"] = [100, 250, 500, 1000, 1500, 2000, 5000, 10000, 15000]   # total samples (not per (s,a) )
-params["horizon"]        = 15
+params["horizon"]        = 16
 params["gamma"]          = 1.0
 
 # extra params for RF_UCRL
 params["bonus_scale_factor"] = 1.0
-params["clip"] = True
+params["clip"] = False
 
 # n_runs and n_jobs
 params["n_runs"]         = 46
@@ -40,13 +45,7 @@ def estimation_error():
     results = experiment(MB_QVI, params)
     data = data.append(results, sort=False)
 
-    # # Run RF_UCRL with clipping
-    # params["clip"] = True
-    # results = experiment(RF_UCRL, params)
-    # data = data.append(results.assign(algorithm="RF-UCRL with clip"), sort=False)
-
-    # Run RF_UCRL without clipping
-    params["clip"] = False
+    # Run RF_UCRL
     results = experiment(RF_UCRL, params)
     data = data.append(results.assign(algorithm="RF-UCRL"), sort=False)
 
@@ -58,37 +57,36 @@ def estimation_error():
     plot_error(data)
 
 
-def show_occupations(samples=1000, runs=20):
-    from matplotlib import pyplot as plt
-    import seaborn as sns
-    del params["clip"]
+def show_occupations(samples=1000):
     agents = [
         RandomBaseline(**params),
-        Optimal(**params),
         MB_QVI(**params),
-        RF_UCRL(**params, clip=True),
-        RF_UCRL(**params, clip=False),
+        RF_UCRL(**params),
         BPI_UCRL(**params),
+        Optimal(**params),
     ]
 
-    data = pd.DataFrame(columns=["algorithm", "samples", "states", "occupations"])
-    for _ in range(runs):
-        for agent in agents:
-            agent.run(samples)
-            df = pd.DataFrame({"occupations": agent.N_sa.sum(axis=1),
-                               "states": np.arange(agent.N_sa.shape[0])})
-            df["algorithm"] = agent.name
-            df["samples"] = samples
-            data = pd.concat([df, data], sort=False)
-    plt.figure("occupations")
+    def occupancies(agent):
+        agent.env.seed(np.random.randint(2**32 - 1))
+        agent.run(samples)
+        df = pd.DataFrame({"occupations": agent.N_sa.sum(axis=1),
+                           "states": np.arange(agent.N_sa.shape[0])})
+        df["algorithm"] = agent.name
+        df["samples"] = samples
+        return df
+
+    output = Parallel(n_jobs=params["n_jobs"], verbose=5)(
+        delayed(occupancies)(agent) for agent, _ in product(agents, range(params["n_runs"])))
+    data = pd.concat(output, ignore_index=True)
     sns.lineplot(x="states", y="occupations", hue="algorithm", data=data)
-    plt.title("State occupations")
+    plt.yscale("log")
+    plt.title("State occupations for {} samples".format(samples))
     plt.xlabel("State $s$")
-    plt.xlabel("Number of visits $N(s)$")
+    plt.ylabel("Number of visits $N(s)$")
     plt.savefig("occupations.pdf")
     plt.show()
 
 
 if __name__== "__main__":
     show_occupations()
-    # estimation_error()
+    estimation_error()
