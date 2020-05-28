@@ -2,7 +2,7 @@ import importlib
 import json
 import argparse
 from pathlib import Path
-from typing import List
+from typing import List, Callable
 
 import numpy as np
 import pandas as pd
@@ -37,11 +37,11 @@ def main() -> None:
 
     # Make agents
     agents = [
-        RandomBaseline(**params),
-        MB_QVI(**params),
-        RF_UCRL(**params),
-        BPI_UCRL(**params),
-        Optimal(**params),
+        RandomBaseline,
+        MB_QVI,
+        RF_UCRL,
+        BPI_UCRL,
+        Optimal,
     ]
 
     # Create output directory
@@ -52,26 +52,27 @@ def main() -> None:
     estimation_error(agents, params)
 
 
-def estimation_error(agents: List[BaseAgent], params: dict) -> None:
+def estimation_error(agents: List[Callable], params: dict) -> None:
     print("--- Estimation error ---")
     if "approximation_samples_logspace" in params:
         params["n_samples_list"] = np.logspace(*params["approximation_samples_logspace"], dtype=np.int32)
     try:
         data = pd.read_csv(params["out"] / 'data.csv')
+        print("Loaded data from {}".format(params["out"] / 'data.csv'))
         if data.empty:
             raise FileNotFoundError
     except FileNotFoundError:
-        data = [experiment(agent, params) for agent in agents if not isinstance(agent, Optimal)]
+        data = [experiment(agent, params) for agent in agents if agent is not Optimal]
         data = pd.concat(data, ignore_index=True, sort=False)
         data.to_csv(params["out"] / 'data.csv')
     plot_error(data, out_dir=params["out"])
 
 
-def show_occupancies(agents: List[BaseAgent], params: dict) -> None:
+def show_occupancies(agents: List[Callable], params: dict) -> None:
     print("--- State occupancies ---")
 
-    def occupancies(agent: BaseAgent) -> pd.DataFrame:
-        agent.env.seed(np.random.randint(32768))
+    def occupancies(agent_class: Callable) -> pd.DataFrame:
+        agent = agent_class(**params)
         agent.run(params["occupancies_samples"])
         df = pd.DataFrame({"occupancy": agent.N_sa.sum(axis=1),
                            "state": np.arange(agent.N_sa.shape[0])})
@@ -81,7 +82,7 @@ def show_occupancies(agents: List[BaseAgent], params: dict) -> None:
     output = Parallel(n_jobs=params["n_jobs"], verbose=5)(
         delayed(occupancies)(agent) for agent, _ in product(agents, range(params["n_runs"])))
     data = pd.concat(output, ignore_index=True)
-    plot_occupancies(data, agents[0].env, out_dir=params["out"])
+    plot_occupancies(data, params["env"], out_dir=params["out"])
 
 
 if __name__ == "__main__":

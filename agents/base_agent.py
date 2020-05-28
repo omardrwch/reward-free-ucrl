@@ -6,7 +6,7 @@ Model-based Q-value iteration (Azar et al., 2012), adapted to the reward free ca
 Sample n transitions from each state-action pair to estimate the model \hat{P},
 then run value iteration with (true_reward, \hat{P}) to estimate the optimal Q-function
 """
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union, Callable
 import numpy as np
 from joblib import Parallel, delayed
 from copy import deepcopy
@@ -93,14 +93,15 @@ class BaseAgent(object):
         })
 
 
-def experiment_worker(agent: "BaseAgent", params: dict) -> pd.DataFrame:
+def experiment_worker(agent_class: Callable, params: dict) -> pd.DataFrame:
+    agent = agent_class(**params)
     return agent.run_multiple_n(params["n_samples_list"])
 
 
-def experiment(agent: "BaseAgent", params: dict) -> pd.DataFrame:
+def experiment(agent_class: Callable, params: dict) -> pd.DataFrame:
     """
     Run agent in parallel, returns array of dimension (n_runs, len(n_samples_list), *)
     """
     output = Parallel(n_jobs=params["n_jobs"], verbose=5)(
-        delayed(experiment_worker)(agent, params) for _ in range(params["n_runs"]))
+        delayed(experiment_worker)(agent_class, params) for _ in range(params["n_runs"]))
     return pd.concat(output, ignore_index=True)
