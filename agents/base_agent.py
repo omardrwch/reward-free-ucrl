@@ -6,7 +6,7 @@ Model-based Q-value iteration (Azar et al., 2012), adapted to the reward free ca
 Sample n transitions from each state-action pair to estimate the model \hat{P},
 then run value iteration with (true_reward, \hat{P}) to estimate the optimal Q-function
 """
-from typing import Tuple, List, Union, Callable
+from typing import Tuple, List, Union
 import numpy as np
 from joblib import Parallel, delayed
 from copy import deepcopy
@@ -24,11 +24,11 @@ class BaseAgent(object):
 
     def __init__(self, env: FiniteMDP, horizon: int, gamma: float, **kwargs: dict) -> None:
         self.env = deepcopy(env)
-        self.env.seed(np.random.randint(32768))      # <--------- important to seed the environment
+        self.env.seed(np.random.randint(32768))  # <--------- important to seed the environment
         self.H = horizon
         self.gamma = gamma
-        self.trueR = self.env.mean_R                 # <---------  NOT IN GYM, ATTENTION HERE
-        self.trueP = self.env.P                      # <---------  NOT IN GYM, ATTENTION HERE
+        self.trueR = self.env.mean_R  # <---------  NOT IN GYM, ATTENTION HERE
+        self.trueP = self.env.P  # <---------  NOT IN GYM, ATTENTION HERE
         self.S = self.env.observation_space.n
         self.A = self.env.action_space.n
         self.P_hat = None
@@ -69,13 +69,13 @@ class BaseAgent(object):
         S, A = R.shape
         V = np.zeros((horizon, S))
         Q = np.zeros((horizon, S, A))
-        for hh in range(horizon-1, -1, -1):
+        for hh in range(horizon - 1, -1, -1):
             for ss in range(S):
                 max_q = -np.inf
                 for aa in range(A):
                     q_aa = R[ss, aa]
                     if hh < horizon - 1:
-                        q_aa += gamma*P[ss, aa, :].dot(V[hh+1, :])
+                        q_aa += gamma * P[ss, aa, :].dot(V[hh + 1, :])
                     if q_aa > max_q:
                         max_q = q_aa
                     Q[hh, ss, aa] = q_aa
@@ -93,15 +93,14 @@ class BaseAgent(object):
         })
 
 
-def experiment_worker(agent_class: Callable, params: dict) -> pd.DataFrame:
-    agent = agent_class(**params)
+def experiment_worker(agent: "BaseAgent", params: dict) -> pd.DataFrame:
     return agent.run_multiple_n(params["n_samples_list"])
 
 
-def experiment(agent_class: Callable, params: dict) -> pd.DataFrame:
+def experiment(agent: "BaseAgent", params: dict) -> pd.DataFrame:
     """
     Run agent in parallel, returns array of dimension (n_runs, len(n_samples_list), *)
     """
     output = Parallel(n_jobs=params["n_jobs"], verbose=5)(
-        delayed(experiment_worker)(agent_class, params) for _ in range(params["n_runs"]))
+        delayed(experiment_worker)(agent, params) for _ in range(params["n_runs"]))
     return pd.concat(output, ignore_index=True)

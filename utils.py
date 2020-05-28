@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Callable
 
 import matplotlib.pyplot as plt
@@ -15,15 +16,15 @@ rc('font', **{'family': 'serif', 'serif': ['Palatino']})
 rc('text', usetex=True)
 
 
-def plot_error(data: pd.DataFrame) -> None:
+def plot_error(data: pd.DataFrame, out_dir: Path) -> None:
     f, ax = plt.subplots()
     ax.set(xscale="log", yscale="log")
     sns.lineplot(x="samples", y="error", hue="algorithm", data=data, ax=ax)
     plt.xlabel("Number of samples")
     plt.ylabel("$|\hat{V}^*(s_0) - V^*(s_0)|$")
     # plt.title("$|\hat{V}^*(s_0) - V^*(s_0)|$ versus total number of samples")
-    plt.savefig("approximation_error.pdf")
-    plt.savefig("approximation_error.png")
+    plt.savefig(out_dir / "approximation_error.pdf")
+    plt.savefig(out_dir / "approximation_error.png")
     plt.show()
 
 
@@ -38,25 +39,25 @@ def plot_error_upper_bound(xdata: np.ndarray, error_array: np.ndarray, label: st
     plt.title("$\max_a E_0(s_1, a)$")
 
 
-def plot_occupancies(data: pd.DataFrame, env: gym.Env) -> None:
+def plot_occupancies(data: pd.DataFrame, env: gym.Env, out_dir: Path) -> None:
     if isinstance(env, GridWorld):
-        plot_2d_occupancies(data, env)
+        plot_2d_occupancies(data, env, out_dir)
     else:
-        plot_1d_occupancies(data)
+        plot_1d_occupancies(data, out_dir)
 
 
-def plot_1d_occupancies(data: pd.DataFrame) -> None:
+def plot_1d_occupancies(data: pd.DataFrame, out_dir: Path) -> None:
     sns.lineplot(x="state", y="occupancy", hue="algorithm", data=data)
     plt.yscale("log")
     # plt.title("State occupancies for {} samples".format(samples))
     plt.xlabel("State $s$")
     plt.ylabel("Number of visits $N(s)$")
-    plt.savefig("occupancies.pdf")
-    plt.savefig("occupancies.png")
+    plt.savefig(out_dir / "occupancies.pdf")
+    plt.savefig(out_dir / "occupancies.png")
     plt.show()
 
 
-def plot_2d_occupancies(data: pd.DataFrame, env: GridWorld) -> None:
+def plot_2d_occupancies(data: pd.DataFrame, env: GridWorld, out_dir: Path) -> None:
     data = data.groupby(['algorithm', 'state'], as_index=False, sort=False).mean()
     v_max = data["occupancy"].max()
     algorithms = data.algorithm.unique()
@@ -78,8 +79,8 @@ def plot_2d_occupancies(data: pd.DataFrame, env: GridWorld) -> None:
         ax = fig.add_subplot(rows, cols, rows*cols)
         ax.axis('off')
     fig.colorbar(im, ax=ax)
-    plt.savefig("2d_occupancies.pdf")
-    plt.savefig("2d_occupancies.png")
+    plt.savefig(out_dir / "occupancies.pdf")
+    plt.savefig(out_dir / "occupancies.png")
     plt.show()
 
 
