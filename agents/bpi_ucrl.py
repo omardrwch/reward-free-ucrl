@@ -2,7 +2,7 @@ from itertools import product
 import numpy as np
 from agents.base_agent import BaseAgent
 from envs.finitemdp import FiniteMDP
-from utils import kl_upper_bound, max_expectation_under_constraint, random_argmax
+from utils.utils import kl_upper_bound, max_expectation_under_constraint, random_argmax
 
 
 class BPI_UCRL(BaseAgent):

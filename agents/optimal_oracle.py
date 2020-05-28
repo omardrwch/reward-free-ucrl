@@ -1,5 +1,5 @@
 from agents.base_agent import BaseAgent
-from utils import random_argmax
+from utils.utils import random_argmax
 
 
 class Optimal(BaseAgent):

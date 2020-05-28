@@ -10,7 +10,7 @@ from agents.base_agent import BaseAgent
 import pandas as pd
 
 from envs.finitemdp import FiniteMDP
-from utils import random_argmax
+from utils.utils import random_argmax
 
 
 class RF_UCRL(BaseAgent):
