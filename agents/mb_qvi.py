@@ -17,9 +17,9 @@ class MB_QVI(BaseAgent):
     Sample n transitions from each state-action pair to estimate the model \hat{P},
     then run value iteration with (true_reward, \hat{P}) to estimate the optimal Q-function
     """
-    name = "Generative Model"
+    name: str = "Generative Model"
 
-    def run(self, total_samples):
+    def run(self, total_samples: int) -> float:
         self.reset()
         n_samples_per_pair = int(np.ceil(total_samples/(self.S*self.A)))
         for ss in range(self.S):

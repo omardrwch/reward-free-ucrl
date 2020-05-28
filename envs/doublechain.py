@@ -11,7 +11,7 @@ class DoubleChain(Chain):
     :param L:         length of the chain
     :param fail_prob: fail probability 
     """
-    def __init__(self, L, fail_prob):
+    def __init__(self, L: int, fail_prob: float) -> None:
         assert L >= 2
         self.L = L
         if L % 2 == 0:
@@ -20,7 +20,7 @@ class DoubleChain(Chain):
             self.initial_state = L // 2
 
         states = list(range(L))
-        action_sets = [ [0, 1] for ss in states]
+        action_sets = [[0, 1] for _ in states]
 
         # transition probabilities
         P = np.zeros((L, 2, L))
@@ -57,15 +57,14 @@ class DoubleChain(Chain):
                     mean_r += self.reward_fn(ss, aa, ns)*self.P[ss, aa, ns]
                 self.mean_R[ss, aa] = mean_r
 
-    def reset(self, state=None):
+    def reset(self, state: int = None) -> int:
         if state is None:
             self.state = self.initial_state 
         else:
             self.state = state
         return self.state
 
-
-    def reward_fn(self, state, action, next_state):
+    def reward_fn(self, state: int, action: int, next_state: int) -> float:
         """
         Reward function
         """
@@ -77,7 +76,7 @@ class DoubleChain(Chain):
 
 
 class DoubleChainExp(DoubleChain):
-    def reward_fn(self, state, action, next_state):
+    def reward_fn(self, state: int, action: int, next_state: int) -> float:
         if action == 1:
             return np.exp(-(self.L - next_state) / (self.L / 4))
         return 0

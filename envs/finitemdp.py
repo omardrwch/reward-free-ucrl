@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import List, Tuple
+
 import numpy as np
 from gym import spaces
 import gym
@@ -25,7 +27,8 @@ class FiniteMDP(gym.Env, ABC):
         random   (np.random.RandomState) : random number generator
         history(list): list containing all (state, action, reward, next_state, done) obtained in the environment
     """
-    def __init__(self, states, action_sets, P, seed_val=42, track=False, max_history_size=500000):
+    def __init__(self, states: List[int], action_sets: List[List[int]], P: np.ndarray, seed_val: int = 42,
+                 track: bool = False, max_history_size: int = 500000) -> None:
         super().__init__()
         self.states = states
         self.action_sets = action_sets
@@ -45,7 +48,7 @@ class FiniteMDP(gym.Env, ABC):
         self.reset()
         self._check()
 
-    def reset(self, state=0):
+    def reset(self, state: int = 0) -> int:
         """
         Reset the environment to a default state or to a given state.
 
@@ -58,7 +61,7 @@ class FiniteMDP(gym.Env, ABC):
         self.state = state
         return self.state
 
-    def _check(self):
+    def _check(self) -> None:
         """
         Check consistency of the MDP
         """
@@ -67,19 +70,19 @@ class FiniteMDP(gym.Env, ABC):
             for a in self.available_actions(s):
                 assert abs(self.P[s, a, :].sum() - 1.0) < 1e-15
 
-    def available_actions(self, state=None):
+    def available_actions(self, state: int = None) -> List[int]:
         if state is not None:
             return self.action_sets[state]
         else:
             return self.action_sets[self.state]
 
-    def seed(self, seed=42):
+    def seed(self, seed: int = 42) -> None:
         """
         Reset random number generator
         """
         self.random = np.random.RandomState(seed)
 
-    def sample_transition(self, s, a):
+    def sample_transition(self, s: int, a: int) -> int:
         """
         Sample a transition s' from P(s'|s,a).
 
@@ -94,7 +97,7 @@ class FiniteMDP(gym.Env, ABC):
         s_ = self.random.choice(self.states, p=prob)
         return s_
 
-    def step(self, action):
+    def step(self, action: int) -> Tuple[int, float, bool, dict]:
         """
         Execute a step. Similar to gym function [1].
         [1] https://gym.openai.com/docs/#environments
@@ -124,13 +127,13 @@ class FiniteMDP(gym.Env, ABC):
         observation = next_state
         return observation, reward, done, info
 
-    def is_terminal(self, state):
+    def is_terminal(self, state: int) -> bool:
         """
         Returns true if a state is terminal.
         """
         return False
 
-    def print(self):
+    def print(self) -> None:
         """
         Print the structure of the MDP.
         """
@@ -146,7 +149,7 @@ class FiniteMDP(gym.Env, ABC):
             print("~~~~~~~~~~~~~~~~~~~~")
 
     @abstractmethod
-    def reward_fn(self, state, action, next_state):
+    def reward_fn(self, state: int, action: int, next_state: int) -> float:
         """
         Reward function
 

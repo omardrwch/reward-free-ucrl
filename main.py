@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
-from agents.base_agent import experiment
+from agents.base_agent import experiment, BaseAgent
 from agents.mb_qvi import MB_QVI
 from agents.optimal_oracle import Optimal
 from agents.random_baseline import RandomBaseline
@@ -20,20 +20,22 @@ np.random.seed(1253)
 # Create parameters
 params = {
     # "env": DoubleChainExp(31, 0.1),
-    "env": GridWorld(nrows=6, ncols=6),
-    "n_samples_list": np.logspace(2, 4, 9, dtype=np.int32),
-    "horizon": 16,
-    "gamma": 1.0,
+    # "horizon": 16,
+    "env": GridWorld(nrows=10, ncols=10, reward_at={(7, 7): 1},),
+    "horizon": 20,
+    "n_samples_list": np.logspace(2, 4.5, 11, dtype=np.int32),
+    "gamma": 0.99,
     "bonus_scale_factor": 1.0,
     # extra params for RF_UCRL
     "clip": False,
     # n_runs and n_jobs
-    "n_runs": 46,
-    "n_jobs": 46
+    "n_runs": 1,
+    "n_jobs": 4
 }
 
 
-def estimation_error():
+def estimation_error() -> None:
+    print(estimation_error.__name__)
     try:
         data = pd.read_csv('data.csv')
         if data.empty:
@@ -61,7 +63,8 @@ def estimation_error():
     plot_error(data)
 
 
-def show_occupancies(samples=1000):
+def show_occupancies(samples: int = 5000) -> None:
+    print(show_occupancies.__name__)
     agents = [
         RandomBaseline(**params),
         MB_QVI(**params),
@@ -70,7 +73,7 @@ def show_occupancies(samples=1000):
         Optimal(**params),
     ]
 
-    def occupancies(agent):
+    def occupancies(agent: BaseAgent) -> pd.DataFrame:
         agent.env.seed(np.random.randint(32768))
         agent.run(samples)
         df = pd.DataFrame({"occupancy": agent.N_sa.sum(axis=1),
@@ -85,6 +88,6 @@ def show_occupancies(samples=1000):
     plot_occupancies(data, agents[0].env)
 
 
-if __name__== "__main__":
+if __name__ == "__main__":
     show_occupancies()
     estimation_error()

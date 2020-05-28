@@ -3,9 +3,9 @@ from utils import random_argmax
 
 
 class Optimal(BaseAgent):
-    name = "Optimal policy"
+    name: str = "Optimal policy"
 
-    def run(self, total_samples):
+    def run(self, total_samples: int) -> float:
         self.reset()
         sample_count = 0
         while sample_count < total_samples:

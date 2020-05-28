@@ -1,3 +1,4 @@
+from envs.chain import Chain
 from .deterministic_mdp import DeterministicFiniteMDP
 
 
@@ -6,7 +7,7 @@ class DeterministicChain(DeterministicFiniteMDP):
     Simple chain environment.
     :param L: length of the chain
     """
-    def __init__(self, L):
+    def __init__(self, L: int) -> None:
         # list of (state, action, next state)
         # 2 possible actions per state: the first action takes the agent back to the left state and the second action
         # makes the agent advance to the right state, towards the reward.
@@ -30,7 +31,7 @@ class DeterministicChain(DeterministicFiniteMDP):
         rewards = {(L-1, 1, L-1): 1.0}  # reward of 1.0 when transitioning to the last state starting from last state
         super().__init__(transitions, rewards)
 
-    def is_terminal(self, state):
+    def is_terminal(self, state: int) -> bool:
         return state == self.L-1
 
 

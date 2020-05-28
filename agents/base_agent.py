@@ -6,21 +6,23 @@ Model-based Q-value iteration (Azar et al., 2012), adapted to the reward free ca
 Sample n transitions from each state-action pair to estimate the model \hat{P},
 then run value iteration with (true_reward, \hat{P}) to estimate the optimal Q-function
 """
-
+from typing import Tuple, List, Union, Callable
 import numpy as np
 from joblib import Parallel, delayed
 from copy import deepcopy
 from numba import jit
 import pandas as pd
 
+from envs.finitemdp import FiniteMDP
+
 
 class BaseAgent(object):
     """
         Base agent collecting statistics
     """
-    name = "Base agent"
+    name: str = "Base agent"
 
-    def __init__(self, env, horizon, gamma, **kwargs):
+    def __init__(self, env: FiniteMDP, horizon: int, gamma: float, **kwargs: dict) -> None:
         self.env = deepcopy(env)
         self.env.seed(np.random.randint(32768))      # <--------- important to seed the environment
         self.H = horizon
@@ -34,36 +36,36 @@ class BaseAgent(object):
         self.N_sas = None
         self.trueQ, self.trueV = self.run_value_iteration(self.trueR, self.trueP, self.H, self.gamma)
 
-    def reset(self):
+    def reset(self) -> None:
         S, A = self.S, self.A
         self.N_sa = np.zeros((S, A))
         self.N_sas = np.zeros((S, A, S))
         self.P_hat = np.ones((S, A, S)) / S
 
-    def step(self, state, action):
+    def step(self, state: int, action: int) -> int:
         next_state, _, _, _ = self.env.step(action)
         self.update_model(state, action, next_state)
         return next_state
 
-    def update_model(self, state, action, next_state):
+    def update_model(self, state: int, action: int, next_state: int) -> None:
         self.N_sa[state, action] += 1
         self.N_sas[state, action, next_state] += 1
         self.P_hat[state, action, :] = self.N_sas[state, action, :] / self.N_sa[state, action]
 
-    def estimate_value(self):
+    def estimate_value(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         :return: Q_hat, V_hat
         """
         return self.run_value_iteration(self.trueR, self.P_hat, self.H, self.gamma)
 
-    def estimation_error(self):
+    def estimation_error(self) -> float:
         initial_state = self.env.reset()
         Q_hat, V_hat = self.estimate_value()
         return np.abs(V_hat[0, initial_state] - self.trueV[0, initial_state])
 
     @staticmethod
     @jit(nopython=True)
-    def run_value_iteration(R, P, horizon, gamma):
+    def run_value_iteration(R: np.ndarray, P: np.ndarray, horizon: int, gamma: float) -> Tuple[np.ndarray, np.ndarray]:
         S, A = R.shape
         V = np.zeros((horizon, S))
         Q = np.zeros((horizon, S, A))
@@ -80,10 +82,10 @@ class BaseAgent(object):
                 V[hh, ss] = max_q
         return Q, V
 
-    def run(self, total_samples):
+    def run(self, total_samples: int):
         raise NotImplementedError
 
-    def run_multiple_n(self, n_list):
+    def run_multiple_n(self, n_list: Union[List[int], np.ndarray]) -> pd.DataFrame:
         return pd.DataFrame({
             "algorithm": [self.name] * len(n_list),
             "samples": n_list,
@@ -91,12 +93,12 @@ class BaseAgent(object):
         })
 
 
-def experiment_worker(agent_class, params):
+def experiment_worker(agent_class: Callable, params: dict) -> pd.DataFrame:
     agent = agent_class(**params)
     return agent.run_multiple_n(params["n_samples_list"])
 
 
-def experiment(agent_class, params):
+def experiment(agent_class: Callable, params: dict) -> pd.DataFrame:
     """
     Run agent in parallel, returns array of dimension (n_runs, len(n_samples_list), *)
     """

@@ -1,3 +1,5 @@
+from typing import Callable
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -9,8 +11,8 @@ from envs.gridworld import GridWorld
 
 sns.set()
 from matplotlib import rc
-# rc('font', **{'family': 'serif', 'serif': ['Palatino']})
-# rc('text', usetex=True)
+rc('font', **{'family': 'serif', 'serif': ['Palatino']})
+rc('text', usetex=True)
 
 
 def plot_error(data: pd.DataFrame) -> None:
@@ -25,7 +27,7 @@ def plot_error(data: pd.DataFrame) -> None:
     plt.show()
 
 
-def plot_error_upper_bound(xdata, error_array, label, fignum):
+def plot_error_upper_bound(xdata: np.ndarray, error_array: np.ndarray, label: str, fignum: int) -> None:
     plt.figure(fignum)
     mean_error = error_array.mean(axis=0)
     std_error = error_array.std(axis=0)
@@ -43,7 +45,7 @@ def plot_occupancies(data: pd.DataFrame, env: gym.Env) -> None:
         plot_1d_occupancies(data)
 
 
-def plot_1d_occupancies(data):
+def plot_1d_occupancies(data: pd.DataFrame) -> None:
     sns.lineplot(x="state", y="occupancy", hue="algorithm", data=data)
     plt.yscale("log")
     # plt.title("State occupancies for {} samples".format(samples))
@@ -81,7 +83,7 @@ def plot_2d_occupancies(data: pd.DataFrame, env: GridWorld) -> None:
     plt.show()
 
 
-def kullback_leibler(p, q):
+def kullback_leibler(p: np.ndarray, q: np.ndarray) -> float:
     """
         KL between two categorical distributions
     :param p: categorical distribution
@@ -98,7 +100,7 @@ def kullback_leibler(p, q):
     return kl
 
 
-def bernoulli_kullback_leibler(p, q):
+def bernoulli_kullback_leibler(p: float, q: float) -> float:
     """
         Compute the Kullback-Leibler divergence of two Bernoulli distributions.
 
@@ -119,7 +121,7 @@ def bernoulli_kullback_leibler(p, q):
     return kl1 + kl2
 
 
-def d_bernoulli_kullback_leibler_dq(p, q):
+def d_bernoulli_kullback_leibler_dq(p: float, q: float) -> float:
     """
         Compute the partial derivative of the Kullback-Leibler divergence of two Bernoulli distributions.
 
@@ -132,7 +134,7 @@ def d_bernoulli_kullback_leibler_dq(p, q):
     return (1 - p) / (1 - q) - p/q
 
 
-def kl_upper_bound(_sum, count, threshold=1, eps=1e-2, lower=False):
+def kl_upper_bound(_sum: float, count: int, threshold: float = 1, eps: float = 1e-2, lower: bool = False) -> float:
     """
         Upper Confidence Bound of the empirical mean built on the Kullback-Leibler divergence.
 
@@ -159,7 +161,8 @@ def kl_upper_bound(_sum, count, threshold=1, eps=1e-2, lower=False):
     return newton_iteration(kl, d_kl, eps, a=a, b=b)
 
 
-def newton_iteration(f, df, eps, x0=None, a=None, b=None, weight=0.9, display=False):
+def newton_iteration(f: Callable, df: Callable, eps: float, x0: float = None, a: float = None, b: float = None,
+                     weight: float = 0.9, display: bool = False) -> float:
     """
         Run Newton Iteration to solve f(x) = 0, with x in [a, b]
     :param f: a function R -> R
@@ -210,7 +213,8 @@ def newton_iteration(f, df, eps, x0=None, a=None, b=None, weight=0.9, display=Fa
     return x_next
 
 
-def max_expectation_under_constraint(f, q, c, eps=1e-2, display=False):
+def max_expectation_under_constraint(f: Callable, q: np.ndarray, c: float, eps: float = 1e-2,
+                                     display: bool = False) -> np.ndarray:
     """
         Solve the following constrained optimisation problem:
              max_p E_p[f]    s.t.    KL(q || p) <= c
@@ -218,6 +222,7 @@ def max_expectation_under_constraint(f, q, c, eps=1e-2, display=False):
     :param q: a discrete distribution q(x), np.array of size n
     :param c: a threshold for the KL divergence between p and q.
     :param eps: desired accuracy on the constraint
+    :param display: plot the function
     :return: the argmax p*
     """
     np.seterr(all='warn')
@@ -253,16 +258,16 @@ def max_expectation_under_constraint(f, q, c, eps=1e-2, display=False):
     return p_star
 
 
-def all_argmax(x):
+def all_argmax(x: np.ndarray) -> np.ndarray:
     """
     :param x: a set
     :return: the list of indexes of all maximums of x
     """
     m = np.amax(x)
-    return np.nonzero(x == m)[0]
+    return np.nonzero(np.isclose(x, m))[0]
 
 
-def random_argmax(x):
+def random_argmax(x: np.ndarray) -> int:
     """
         Randomly tie-breaking arg max
     :param x: an array

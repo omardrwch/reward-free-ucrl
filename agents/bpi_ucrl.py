@@ -1,6 +1,7 @@
 from itertools import product
 import numpy as np
 from agents.base_agent import BaseAgent
+from envs.finitemdp import FiniteMDP
 from utils import kl_upper_bound, max_expectation_under_constraint, random_argmax
 
 
@@ -8,11 +9,11 @@ class BPI_UCRL(BaseAgent):
     """
     BPI_UCRL
     """
-    name = "BPI-UCRL"
-    DELTA = 0.1
-    THRESHOLD = 0.1/DELTA
+    name: str = "BPI-UCRL"
+    DELTA: float = 0.1
+    THRESHOLD: float = 0.1/DELTA
 
-    def __init__(self, env, horizon, gamma, reward_known=True, **kwargs):
+    def __init__(self, env: FiniteMDP, horizon: int, gamma: float, reward_known: bool = True, **kwargs: dict) -> None:
         super().__init__(env, horizon, gamma)
         self.reward_known = reward_known
         self.total_reward = None
@@ -20,26 +21,26 @@ class BPI_UCRL(BaseAgent):
         self.q_ucb = None
         self.v_ucb = None
 
-    def reset(self):
+    def reset(self) -> None:
         super().reset()
         self.total_reward = np.zeros((self.S, self.A))
         self.reward_ucb = np.zeros((self.S, self.A)) if not self.reward_known else self.trueR
         self.q_ucb = np.zeros((self.H, self.S, self.A))
         self.v_ucb = np.zeros((self.H, self.S))
 
-    def step(self, state, action):
+    def step(self, state: int, action: int) -> int:
         next_state, reward, _, _ = self.env.step(action)
         self.update_model(state, action, next_state)
         self.update_reward(state, action, reward)
         return next_state
 
-    def update_reward(self, state, action, reward):
+    def update_reward(self, state: int, action: int, reward: int) -> None:
         if not self.reward_known:
             self.total_reward[state, action] += reward
             self.reward_ucb[state, action] = kl_upper_bound(self.total_reward[state, action], self.N_sa[state, action],
                                                             threshold=self.THRESHOLD)
 
-    def compute_value_upper_bound(self):
+    def compute_value_upper_bound(self) -> None:
         S, A = self.q_ucb[0, :, :].shape
         for h, s, a in product(range(self.H-1, -1, -1), range(S), range(A)):
             next_v = self.v_ucb[h+1] if h < self.H-1 else np.zeros((S,))
@@ -49,7 +50,7 @@ class BPI_UCRL(BaseAgent):
             self.q_ucb[h, s, a] = p_plus @ u_next
             self.v_ucb[h, s] = self.q_ucb[h, s].max()
 
-    def run(self, total_samples):
+    def run(self, total_samples: int) -> float:
         self.reset()
         sample_count = 0
         while sample_count < total_samples:

@@ -1,9 +1,15 @@
 """
 Class for deterministic MDP
 """
+from typing import Tuple, List, Dict, Union
 
 from .finitemdp import FiniteMDP
 import numpy as np
+
+
+Transition = Tuple[int, int, int]
+Pair = Tuple[int, int]
+Rewards = Dict[Union[Transition, Pair, Tuple[int]], float]
 
 
 class DeterministicFiniteMDP(FiniteMDP):
@@ -12,13 +18,15 @@ class DeterministicFiniteMDP(FiniteMDP):
         States and actions must be integers starting from 0
 
     :param transitions: list of transitions [ (state, action, next_state), ...  ]
-    :param rewards: dictionary of rewards { (state,action,next_state): reward, ... }
+    :param rewards: dictionary of rewards { (state, action, next_state): reward, ... }
                     or { (state,action): reward, ... }
                     or { (state,): reward, ... }
     """
-    def __init__(self, transitions, rewards):
+    rewards: Rewards
+
+    def __init__(self, transitions: List[Transition], rewards: Rewards) -> None:
         # Analyze reward structure
-        self.n_key = len(list(rewards.items())[0][0])
+        self.n_key = len(next(iter(rewards.keys())))
         assert 0 < self.n_key <= 3, "Error in DeterministicFiniteMDP: misspecified rewards"
         self.reward_type = ['state', 'state_action', 'state_action_nextstate'][self.n_key-1]
         self.rewards = rewards
@@ -31,8 +39,8 @@ class DeterministicFiniteMDP(FiniteMDP):
             action_set.add(entry[1])
             state_set.add(entry[2])
 
-        states = np.arange(max(state_set)+1, dtype=np.int64).tolist()
-        actions = np.arange(max(action_set)+1, dtype=np.int64).tolist()
+        states = list(range(max(state_set)+1))
+        actions = list(range(max(action_set)+1))
 
         # Build transition probabilities and action sets
         Ns = len(states)
@@ -55,7 +63,7 @@ class DeterministicFiniteMDP(FiniteMDP):
         # Initialize super
         super().__init__(states, action_sets, P, seed_val=42)
 
-    def reward_fn(self, state, action, next_state):
+    def reward_fn(self, state: int, action: int, next_state: int) -> float:
         try:
             if self.reward_type == 'state':
                 return self.rewards[(state,)]
@@ -64,4 +72,4 @@ class DeterministicFiniteMDP(FiniteMDP):
             elif self.reward_type == 'state_action_nextstate':
                 return self.rewards[(state, action, next_state)]
         except KeyError:
-            return 0.0
+            return 0

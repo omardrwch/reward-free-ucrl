@@ -1,5 +1,9 @@
+from typing import Tuple, List, Dict
+
 import numpy as np
 from .finitemdp import FiniteMDP
+
+Coordinate = Tuple[int, int]
 
 
 class GridWorld(FiniteMDP):
@@ -20,16 +24,16 @@ class GridWorld(FiniteMDP):
     """
 
     def __init__(self,
-                 seed_val=42,
-                 nrows=5,
-                 ncols=5,
-                 start_coord=(0, 0),
-                 terminal_states=None,
-                 success_probability=0.9,
-                 reward_at=None,
-                 walls=None,
-                 default_reward=0,
-                 track=False):
+                 seed_val: float = 42,
+                 nrows: int = 5,
+                 ncols: int = 5,
+                 start_coord: Coordinate = (0, 0),
+                 terminal_states: List[Coordinate] = None,
+                 success_probability: float = 0.9,
+                 reward_at: Dict[Coordinate, float] = None,
+                 walls: List[Coordinate] = None,
+                 default_reward: float = 0,
+                 track: bool = False) -> None:
 
         # Grid dimensions
         self.nrows = nrows
@@ -101,17 +105,17 @@ class GridWorld(FiniteMDP):
                 self.mean_R[ss, aa] = mean_r
 
 
-    def is_terminal(self, state):
+    def is_terminal(self, state: int) -> bool:
         state_coord = self.index2coord[state]
         return state_coord in self.terminal_states
 
-    def reset(self, state=None):
+    def reset(self, state: int = None) -> int:
         if state is None:
             state = self.coord2index[self.start_coord]
         self.state = state
         return state
 
-    def reward_fn(self, state, action, next_state):
+    def reward_fn(self, state: int, action: int, next_state: int) -> float:
         row, col = self.index2coord[next_state]
         if (row, col) in self.reward_at:
             return self.reward_at[(row, col)]
@@ -119,13 +123,13 @@ class GridWorld(FiniteMDP):
             return 0.0
         return self.default_reward
 
-    def _build(self):
+    def _build(self) -> None:
         self._build_state_mappings_and_states()
         self._build_action_sets()
         self._build_transition_probabilities()
         self._build_ascii()
 
-    def _build_state_mappings_and_states(self):
+    def _build_state_mappings_and_states(self) -> None:
         index = 0
         for rr in range(self.nrows):
             for cc in range(self.ncols):
@@ -138,14 +142,14 @@ class GridWorld(FiniteMDP):
         self.states = np.arange(index).tolist()
         self.Ns = len(self.states)
 
-    def _build_action_sets(self):
+    def _build_action_sets(self) -> None:
         action_sets = []
         for s_idx in range(self.Ns):
             actions_s = [0, 1, 2, 3]
             action_sets.append(actions_s)
         self.action_sets = action_sets
 
-    def _build_transition_probabilities(self):
+    def _build_transition_probabilities(self) -> None:
         Ns = self.Ns
         Na = self.Na
         self.P = np.zeros((Ns, Na, Ns))
@@ -168,7 +172,7 @@ class GridWorld(FiniteMDP):
                             if n_valid > 1:
                                 self.P[s, a, next_s] = (1.0-self.success_probability)/(n_valid - 1)
 
-    def _get_neighbors(self, row, col):
+    def _get_neighbors(self, row: int, col: int) -> Dict[int, Tuple[Coordinate, bool]]:
         aux = {}
         aux['left'] = (row, col-1)  # left
         aux['right'] = (row, col+1)  # right
@@ -181,7 +185,7 @@ class GridWorld(FiniteMDP):
             neighbors[direction] = (next_s, self._is_valid(*next_s))
         return neighbors
 
-    def _is_valid(self, row, col):
+    def _is_valid(self, row: int, col: int) -> bool:
         if (row, col) in self.walls:
             return False
         elif row < 0 or row >= self.nrows:
@@ -190,7 +194,7 @@ class GridWorld(FiniteMDP):
             return False
         return True
 
-    def _build_ascii(self):
+    def _build_ascii(self) -> None:
         grid = [['']*self.ncols for rr in range(self.nrows)]
         grid_idx = [[''] * self.ncols for rr in range(self.nrows)]
         for rr in range(self.nrows):
@@ -220,7 +224,7 @@ class GridWorld(FiniteMDP):
         self.grid_ascii = grid_ascii
         self.grid_idx = grid_idx
 
-    def display_values(self, values):
+    def display_values(self, values: List[float]) -> None:
         assert len(values) == self.Ns
         grid_values = [['X'.ljust(9)] * self.ncols for ii in range(self.nrows)]
         for s_idx in range(self.Ns):
@@ -236,7 +240,7 @@ class GridWorld(FiniteMDP):
                 grid_values_ascii += 4*' ' + ' '.join([str(jj).zfill(2).ljust(9) for jj in range(self.ncols)])
         print(grid_values_ascii)
 
-    def print_transition_at(self, row, col, action):
+    def print_transition_at(self, row: int, col: int, action: int) -> None:
         s_idx = self.coord2index[(row, col)]
         if s_idx < 0:
             print("wall!")
@@ -246,6 +250,6 @@ class GridWorld(FiniteMDP):
             if prob > 0:
                 print("to (%d, %d) with prob %f" % (self.index2coord[next_s_idx]+(prob,)))
 
-    def render_ascii(self):
+    def render_ascii(self) -> None:
         print(self.grid_ascii)
 
