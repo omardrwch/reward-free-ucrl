@@ -54,12 +54,15 @@ def main() -> None:
 
 def estimation_error(agents: List[BaseAgent], params: dict) -> None:
     print("--- Estimation error ---")
+    if "approximation_samples_logspace" in params:
+        params["n_samples_list"] = np.logspace(*params["approximation_samples_logspace"], dtype=np.int32)
     try:
         data = pd.read_csv(params["out"] / 'data.csv')
         if data.empty:
             raise FileNotFoundError
     except FileNotFoundError:
-        data = pd.concat([experiment(agent, params) for agent in agents], ignore_index=True)
+        data = [experiment(agent, params) for agent in agents if not isinstance(agent, Optimal)]
+        data = pd.concat(data, ignore_index=True, sort=False)
         data.to_csv(params["out"] / 'data.csv')
     plot_error(data, out_dir=params["out"])
 
