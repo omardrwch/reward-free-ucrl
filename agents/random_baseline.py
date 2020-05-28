@@ -1,6 +1,6 @@
 from agents.base_agent import BaseAgent
 import numpy as np
-
+import pandas as pd
 
 class RandomBaseline(BaseAgent):
     """
@@ -10,7 +10,7 @@ class RandomBaseline(BaseAgent):
     """
     name: str = "Random Policy"
 
-    def run(self, total_samples: int) -> float:
+    def run(self, total_samples: int) -> pd.DataFrame:
         self.reset()
         sample_count = 0
         while sample_count < total_samples:
@@ -19,4 +19,8 @@ class RandomBaseline(BaseAgent):
                 sample_count += 1
                 action = np.random.randint(self.env.action_space.n)
                 state = self.step(state, action)
-        return self.estimation_error()
+        return pd.DataFrame({
+            "algorithm": self.name,
+            "samples": total_samples,
+            "error": self.estimation_error()
+        })

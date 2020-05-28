@@ -1,3 +1,4 @@
+import pandas as pd
 from agents.base_agent import BaseAgent
 from utils.utils import random_argmax
 
@@ -5,7 +6,7 @@ from utils.utils import random_argmax
 class Optimal(BaseAgent):
     name: str = "Optimal Policy"
 
-    def run(self, total_samples: int) -> float:
+    def run(self, total_samples: int) -> pd.DataFrame:
         self.reset()
         sample_count = 0
         while sample_count < total_samples:
@@ -14,4 +15,8 @@ class Optimal(BaseAgent):
                 sample_count += 1
                 action = random_argmax(self.trueQ[h, state])
                 state = self.step(state, action)
-        return self.estimation_error()
+        return pd.DataFrame({
+            "algorithm": self.name,
+            "samples": total_samples,
+            "error": self.estimation_error()
+        })

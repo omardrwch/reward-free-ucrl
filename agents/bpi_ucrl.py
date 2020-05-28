@@ -1,5 +1,6 @@
 from itertools import product
 import numpy as np
+import pandas as pd
 from agents.base_agent import BaseAgent
 from envs.finitemdp import FiniteMDP
 from utils.utils import kl_upper_bound, max_expectation_under_constraint, random_argmax
@@ -50,7 +51,7 @@ class BPI_UCRL(BaseAgent):
             self.q_ucb[h, s, a] = p_plus @ u_next
             self.v_ucb[h, s] = self.q_ucb[h, s].max()
 
-    def run(self, total_samples: int) -> float:
+    def run(self, total_samples: int) -> pd.DataFrame:
         self.reset()
         sample_count = 0
         while sample_count < total_samples:
@@ -60,4 +61,8 @@ class BPI_UCRL(BaseAgent):
                 action = random_argmax(self.q_ucb[hh, state, :])
                 state = self.step(state, action)
             self.compute_value_upper_bound()
-        return self.estimation_error()
+        return pd.DataFrame({
+            "algorithm": self.name,
+            "samples": total_samples,
+            "error": self.estimation_error()
+        })

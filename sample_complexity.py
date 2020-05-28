@@ -30,6 +30,12 @@ def plot(params: dict) -> None:
     data["error"] /= params["horizon"]
     data["error-ucb"] /= params["horizon"]
 
+    plot_bins(data, out_dir=params["out"])
+    plot_error(data, out_dir=params["out"])
+    plt.show()
+
+
+def plot_bins(data, out_dir):
     # plot with number of samples required for each epsilon
     data_bins = data.copy()
     data_bins = data_bins[data_bins["error-ucb"].between(0.0, 1.0)]
@@ -46,21 +52,22 @@ def plot(params: dict) -> None:
     ax.set(xscale="linear", yscale="log")
     sns.barplot(x="error-ucb", y="samples", data=data_bins, palette="Blues_d", errcolor="red")
     plt.xlabel("$\epsilon$")
+    plt.savefig(out_dir / "error-bins.png")
+    plt.savefig(out_dir / "error-bins.pdf")
 
-    plot_error(data)
-    plt.show()
 
-
-def plot_error(data, fignum=1):
+def plot_error(data, out_dir):
     """ plot error and error UCB"""
-    plt.figure(fignum)
+    plt.figure()
     f, ax = plt.subplots()
     ax.set(xscale="log", yscale="log")
     sns.lineplot(x="samples", y="error", data=data, ax=ax, label="Error (empirical)")
     sns.lineplot(x="samples", y="error-ucb", data=data, ax=ax, label="Error (UCB)")
     plt.xlabel("Number of samples")
-    plt.ylabel("Error (normalized by H)")
-    plt.title("$\max_a E_0(s_1, a) / H$")
+    plt.ylabel("Error (normalized by $H$)")
+    plt.title(r"$\max_a E_0(s_1, a) / H$")
+    plt.savefig(out_dir / "error-samples.png")
+    plt.savefig(out_dir / "error-samples.pdf")
 
 
 if __name__ == "__main__":

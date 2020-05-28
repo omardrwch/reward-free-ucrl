@@ -58,7 +58,7 @@ class RF_UCRL(BaseAgent):
                 if clip:
                     F[hh, ss] = min(2*vmax[hh], F[hh, ss])
 
-    def run(self, total_samples: int) -> Tuple[float, float]:
+    def run(self, total_samples: int) -> pd.DataFrame:
         self.reset()
         # explore and gather data
         sample_count = 0
@@ -74,17 +74,10 @@ class RF_UCRL(BaseAgent):
             bonus = np.sqrt(self.beta()/np.maximum(1, self.N_sa))
             self.compute_error_upper_bound(self.E, self.F, self.P_hat, self.H, self.gamma,
                                            bonus, self.v_max, self.clip, self.bonus_scale_factor)
-
-        error = self.estimation_error()
         initial_state = self.env.reset()
-        error_upper_bound = self.F[0, initial_state]  # max_a E[0, initial_state, a]
-        return error, error_upper_bound
-
-    def run_multiple_n(self, n_list: Union[List[int], np.ndarray]) -> pd.DataFrame:
-        errors, error_ucbs = zip(*[self.run(n) for n in n_list])
         return pd.DataFrame({
-            "algorithm": [self.name] * len(n_list),
-            "samples": n_list,
-            "error": errors,
-            "error-ucb": error_ucbs
-        })
+            "algorithm": self.name,
+            "samples": total_samples,
+            "error": self.estimation_error(),
+            "error-ucb": self.F[0, initial_state]
+        }, index=[0])
