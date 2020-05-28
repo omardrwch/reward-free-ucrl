@@ -29,8 +29,4 @@ class MB_QVI(BaseAgent):
                     # sample transition from (ss, aa)
                     self.env.reset(ss)   # put env in state ss     <---------  NOT IN GYM, ATTENTION HERE
                     self.step(ss, aa)
-        return pd.DataFrame({
-            "algorithm": self.name,
-            "samples": total_samples,
-            "error": self.estimation_error()
-        })
+        return self.result_dataframe(total_samples)

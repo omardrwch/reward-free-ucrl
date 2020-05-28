@@ -83,12 +83,15 @@ class BaseAgent(object):
                 V[hh, ss] = max_q
         return Q, V
 
-    def run(self, total_samples: int) -> pd.DataFrame:
+    def result_dataframe(self, samples):
         return pd.DataFrame({
-            "algorithm": self.name,
-            "samples": total_samples,
-            "error": self.estimation_error()
-        })
+                "algorithm": self.name,
+                "samples": samples,
+                "error": self.estimation_error()
+            }, index=[0])
+
+    def run(self, total_samples: int) -> pd.DataFrame:
+        return self.result_dataframe(total_samples)
 
 
 def experiment_worker(agent_class: Callable, params: dict, total_samples: int) -> pd.DataFrame:

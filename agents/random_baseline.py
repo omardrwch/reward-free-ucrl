@@ -19,8 +19,4 @@ class RandomBaseline(BaseAgent):
                 sample_count += 1
                 action = np.random.randint(self.env.action_space.n)
                 state = self.step(state, action)
-        return pd.DataFrame({
-            "algorithm": self.name,
-            "samples": total_samples,
-            "error": self.estimation_error()
-        })
+        return self.result_dataframe(total_samples)

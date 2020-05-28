@@ -61,8 +61,4 @@ class BPI_UCRL(BaseAgent):
                 action = random_argmax(self.q_ucb[hh, state, :])
                 state = self.step(state, action)
             self.compute_value_upper_bound()
-        return pd.DataFrame({
-            "algorithm": self.name,
-            "samples": total_samples,
-            "error": self.estimation_error()
-        })
+        return self.result_dataframe(total_samples)
