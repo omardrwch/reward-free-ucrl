@@ -3,7 +3,7 @@ from utils import random_argmax
 
 
 class Optimal(BaseAgent):
-    name: str = "Optimal policy"
+    name: str = "Optimal Policy"
 
     def run(self, total_samples: int) -> float:
         self.reset()
