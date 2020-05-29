@@ -14,6 +14,8 @@ from utils.utils import plot_error
 
 def main():
     params = load_config_from_args()
+    if "samples_logspace" in params:
+        params["n_samples_list"] = np.logspace(*params["samples_logspace"], dtype=np.int32)
     agents = [
         RandomBaseline,
         MB_QVI,

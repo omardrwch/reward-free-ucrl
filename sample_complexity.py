@@ -13,6 +13,10 @@ from agents.rf_ucrl import RF_UCRL
 
 def main():
     params = load_config_from_args()
+    if "complexity_samples_logspace" in params:
+        params["n_samples_list"] = np.logspace(*params["complexity_samples_logspace"], dtype=np.int32)
+    if "complexity_n_runs" in params:
+        params["n_runs"] = params["complexity_samples_logspace"]
     compute(params)
     plot(params)
 

@@ -1,16 +1,18 @@
 {
-    "env_class": "<class 'envs.doublechain.DoubleChainExp'>",
+    "env_class": "<class 'envs.doublechain.DoubleChain'>",
     "env_params": {
-        "L": 31, "fail_prob": 0.1
+        "L": 33, "fail_prob": 0.05
     },
     "horizon": 20,
     "gamma": 0.99,
     "clip": false,
     "bonus_scale_factor": 1.0,
-    "n_samples_logspace": [2, 4.5, 11],
-    "occupancies_samples": 1000,
+    "seed": 1253,
+    "out": "out",
     "n_runs": 48,
     "n_jobs": 48,
-    "seed": 1253,
-    "out": "out"
+    "samples_logspace": [2, 4.5, 11],
+    "occupancies_samples": 10000,
+    "complexity_samples_logspace": [2, 7, 30],
+    "complexity_n_runs": 5
 }

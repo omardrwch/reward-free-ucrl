@@ -10,10 +10,6 @@ def load_config(path: str) -> dict:
     with open(path) as f:
         params = json.load(f)
 
-    # Optionally compute n_sample_list from logspace
-    if "n_samples_logspace" in params:
-        params["n_samples_list"] = np.logspace(*params["n_samples_logspace"], dtype=np.int32)
-
     # Seed randomness
     np.random.seed(params["seed"])
 
