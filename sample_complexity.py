@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.ticker import LogLocator
 
 from utils.configuration import load_config_from_args
 from agents.base_agent import experiment
@@ -54,6 +55,8 @@ def plot_bins(data, out_dir):
     # plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
     f, ax = plt.subplots()
     ax.set(xscale="linear", yscale="log")
+    ax.yaxis.set_minor_locator(LogLocator(base=10, subs="all"))
+    ax.yaxis.grid(True, which='minor', linestyle='--')
     sns.barplot(x="error-ucb", y="samples", data=data_bins, palette="Blues_d", errcolor="red")
     plt.xlabel("$\epsilon$")
     plt.savefig(out_dir / "error-bins.png")
