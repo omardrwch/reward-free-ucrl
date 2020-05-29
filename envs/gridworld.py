@@ -45,6 +45,8 @@ class GridWorld(FiniteMDP):
         # Default config
         if reward_at is not None:
             self.reward_at = reward_at
+            if isinstance(next(iter(self.reward_at.keys())), str):
+                self.reward_at = {eval(key): value for key, value in self.reward_at.items()}
         else:
             self.reward_at = {(nrows-1, ncols-1): 1, (nrows-2, ncols-1): 0}
         if walls is not None:
@@ -64,7 +66,7 @@ class GridWorld(FiniteMDP):
         self.seed_val = seed_val
 
         # Start coordinate
-        self.start_coord = start_coord
+        self.start_coord = tuple(start_coord)
 
         # Actions (string to index & index to string)
         self.a_str2idx = {'left': 0, 'right': 1, 'up': 2, 'down': 3}

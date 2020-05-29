@@ -29,7 +29,7 @@ def estimation_error(agents: List[Callable], params: dict) -> None:
     print("--- Estimation error ---")
     try:
         data = pd.read_csv(params["out"] / 'data.csv')
-        print("Loaded data from {}".format(params["out"] / 'data.csv'))
+        print("Loaded data from {}.".format(params["out"] / 'data.csv'))
         if data.empty:
             raise FileNotFoundError
     except FileNotFoundError:
