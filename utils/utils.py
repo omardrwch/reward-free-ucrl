@@ -1,3 +1,5 @@
+import timeit
+from functools import partial
 from pathlib import Path
 from typing import Callable
 
@@ -8,6 +10,8 @@ import pandas as pd
 import gym
 
 import matplotlib.colors as colors
+from numba import jit
+
 from envs.gridworld import GridWorld
 
 sns.set()
@@ -214,7 +218,83 @@ def newton_iteration(f: Callable, df: Callable, eps: float, x0: float = None, a:
     return x_next
 
 
-def max_expectation_under_constraint(f: Callable, q: np.ndarray, c: float, eps: float = 1e-2,
+
+def binary_search(f: Callable, eps: float, a: float, b: float = None,
+                  display: bool = False) -> float:
+    """
+    Binary search the zero of a non-increasing function.
+    :param f: the function
+    :param eps: accuracy
+    :param a: lower bound for the zero
+    :param b: optional upper bound for the zero
+    :param display: display the function
+    :return: x such that |f(x)| < eps
+    """
+    f_x = np.inf
+    x = np.nan
+    find_b = False
+    if b is None:
+        find_b = True
+        b = a + 1
+    while abs(f_x) > eps:
+        x = (a + b) / 2
+        f_x = f(x)
+
+        if display:
+            import matplotlib.pyplot as plt
+            xx0 = a
+            xx1 = b
+            xx = np.linspace(xx0, xx1, 100)
+            yy = np.array(list(map(f, xx)))
+            plt.plot(xx, yy)
+            plt.axvline(x=x)
+            plt.show()
+
+        if f_x > 0:
+            a = x
+            if find_b:
+                b *= 2
+        else:
+            b = x
+            find_b = False
+    return x
+
+
+@jit(nopython=True)
+def binary_search_theta(q_p, f_p, c, eps: float, a: float, b: float = None):
+    f_x = np.inf
+    x = np.nan
+    find_b = False
+    if b is None:
+        find_b = True
+        b = a + 1
+    while abs(f_x) > eps:
+        x = (a + b) / 2
+        l_m_f_p = x - f_p
+        f_x = q_p @ np.log(l_m_f_p) + np.log(q_p @ (1 / l_m_f_p)) - c
+        if f_x > 0:
+            a = x
+            if find_b:
+                b *= 2
+        else:
+            b = x
+            find_b = False
+    return x
+
+
+@jit(nopython=True)
+def theta_func(l, q_p, f_p, c):
+    l_m_f_p = l - f_p
+    return q_p @ np.log(l_m_f_p) + np.log(q_p @ (1 / l_m_f_p)) - c
+
+
+def d_theta_dl_func(l, q_p, f_p):
+    l_m_f_p_inv = 1 / (l - f_p)
+    q_l_m_f_p_inv = q_p @ l_m_f_p_inv
+    return q_l_m_f_p_inv - (q_p @ (l_m_f_p_inv ** 2)) / q_l_m_f_p_inv
+
+
+def max_expectation_under_constraint(f: np.ndarray, q: np.ndarray, c: float, eps: float = 1e-2,
                                      display: bool = False) -> np.ndarray:
     """
         Solve the following constrained optimisation problem:
@@ -226,7 +306,6 @@ def max_expectation_under_constraint(f: Callable, q: np.ndarray, c: float, eps: 
     :param display: plot the function
     :return: the argmax p*
     """
-    np.seterr(all='warn')
     x_plus = np.where(q > 0)
     x_zero = np.where(q == 0)
     p_star = np.zeros(q.shape)
@@ -235,25 +314,30 @@ def max_expectation_under_constraint(f: Callable, q: np.ndarray, c: float, eps: 
     q_p = q[x_plus]
     f_p = f[x_plus]
     f_star = np.amax(f)
-    theta = lambda l: q_p @ np.log(l - f_p) + np.log(q_p @ (1 / (l - f_p))) - c
-    d_theta_dl = lambda l: q_p @ (1 / (l - f_p)) - (q_p @ (1 / (l - f_p)**2)) / (q_p @ (1 / (l - f_p)))
+    # theta = partial(theta_func, q_p=q_p, f_p=f_p, c=c)
+    # d_theta_dl = partial(d_theta_dl_func, q_p=q_p, f_p=f_p)
     if f_star > np.amax(f_p):
-        theta_star = theta(f_star)
+        theta_star = theta_func(f_star, q_p=q_p, f_p=f_p, c=c)
         if theta_star < 0:
             lambda_ = f_star
             z = 1 - np.exp(theta_star)
             p_star[x_zero] = 1.0 * (f[x_zero] == np.amax(f[x_zero]))
             p_star[x_zero] *= z / p_star[x_zero].sum()
     if lambda_ is None:
-        if np.allclose(f_p, f_p[0]):
+        if np.all(f_p == f_p[0]):
             return q
         else:
-            lambda_ = newton_iteration(theta, d_theta_dl, eps, x0=f_star + 1, a=f_star, display=display)
+            # Binary search seems slightly (10%) faster than newton
+            # lambda_ = binary_search(theta, eps, a=f_star, display=display)
+            # lambda_ = newton_iteration(theta, d_theta_dl, eps, x0=f_star + 1, a=f_star, display=display)
+
+            # numba jit binary search is twice as fast as python version
+            lambda_ = binary_search_theta(q_p=q_p, f_p=f_p, c=c, eps=eps, a=f_star)
 
     beta = (1 - z) / (q_p @ (1 / (lambda_ - f_p)))
     if beta == 0:
         x_uni = np.where((q > 0) & (f == f_star))
-        p_star[x_uni] = (1 - z) / np.size(x_uni)
+        p_star[x_uni] = (1 - z) / x_uni.size
     else:
         p_star[x_plus] = beta * q_p / (lambda_ - f_p)
     return p_star
@@ -276,3 +360,16 @@ def random_argmax(x: np.ndarray) -> int:
     """
     indices = all_argmax(x)
     return np.random.choice(indices)
+
+
+def random_dist(n):
+    q = np.random.random(n)
+    return q / q.sum()
+
+
+if __name__ == "__main__":
+    print(timeit.timeit(lambda: max_expectation_under_constraint(np.random.random(10),
+                                                                 random_dist(10),
+                                                                 c=np.random.random(), eps=1e-2),
+                        number=100000))
+
