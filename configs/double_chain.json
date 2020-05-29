@@ -1,7 +1,7 @@
 {
     "env_class": "<class 'envs.doublechain.DoubleChain'>",
     "env_params": {
-        "L": 33, "fail_prob": 0.05
+        "L": 31, "fail_prob": 0.05
     },
     "horizon": 20,
     "gamma": 0.99,
@@ -12,7 +12,7 @@
     "n_runs": 48,
     "n_jobs": 48,
     "samples_logspace": [2, 4.5, 11],
-    "occupancies_samples": 10000,
+    "occupancies_samples": 5000,
     "complexity_samples_logspace": [2, 7, 30],
     "complexity_n_runs": 5
 }
