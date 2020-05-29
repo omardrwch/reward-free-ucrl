@@ -58,7 +58,8 @@ def plot_bins(data, out_dir):
     ax.yaxis.set_minor_locator(LogLocator(base=10, subs="all"))
     ax.yaxis.grid(True, which='minor', linestyle='--')
     sns.barplot(x="error-ucb", y="samples", data=data_bins, palette="Blues_d", errcolor="red")
-    plt.xlabel("$\epsilon$")
+    plt.xlabel(r"$\varepsilon$")
+    plt.ylabel("Number of samples")
     plt.savefig(out_dir / "error-bins.png")
     plt.savefig(out_dir / "error-bins.pdf")
 
@@ -72,7 +73,7 @@ def plot_error(data, out_dir):
     sns.lineplot(x="samples", y="error-ucb", data=data, ax=ax, label="Error (UCB)")
     plt.xlabel("Number of samples")
     plt.ylabel("Error (normalized by $H$)")
-    plt.title(r"$\max_a E_0(s_1, a) / H$")
+    # plt.title(r"$\max_a E_0(s_1, a) / H$")
     plt.savefig(out_dir / "error-samples.png")
     plt.savefig(out_dir / "error-samples.pdf")
 
