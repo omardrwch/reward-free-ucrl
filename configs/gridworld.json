@@ -1,5 +1,5 @@
 {
-    "env_class": "<class 'envs.doublechain.DoubleChain'>",
+    "env_class": "<class 'envs.gridworld.GridWorld'>",
     "env_params": {
         "nrows": 10, "ncols": 10, "reward_at": {"7, 7": 1}
     },
