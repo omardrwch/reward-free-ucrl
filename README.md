@@ -7,14 +7,29 @@
 ## Instructions
 
 To reproduce the experiments, simply run:
+
+#### Figure 2.a
 ```
 python3 estimation_error.py configs/double_chain.json
+```
+
+#### Figure 2.b
+```
 python3 state_occupancies.py configs/double_chain.json
+```
 
+#### Figure 2.c and 2.d
+```
+python3 sample_complexity.py configs/double_chain.json
+```
+
+#### Figure 3.a
+```
 python3 estimation_error.py configs/gridworld.json
+```
+#### Figure 3.b
+```
 python3 state_occupancies.py configs/gridworld.json
-
-python3 sample_complexity.py configs/double_chain_exp_small.json
 ```
 
 The results will appear in the `out` directory.
