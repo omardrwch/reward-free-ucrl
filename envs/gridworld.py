@@ -187,6 +187,11 @@ class GridWorld(FiniteMDP):
             neighbors[direction] = (next_s, self._is_valid(*next_s))
         return neighbors
 
+    def get_transition_support(self, state):
+        row, col = self.index2coord[state]
+        neighbors = [(row, col-1), (row, col+1), (row-1, col), (row+1, col)]
+        return [self.coord2index[coord] for coord in neighbors if self._is_valid(*coord)]
+
     def _is_valid(self, row: int, col: int) -> bool:
         if (row, col) in self.walls:
             return False
