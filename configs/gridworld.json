@@ -1,7 +1,11 @@
 {
     "env_class": "<class 'envs.gridworld.GridWorld'>",
     "env_params": {
-        "nrows": 10, "ncols": 10, "reward_at": {"7, 7": 1}
+        "nrows": 21,
+        "ncols": 21,
+        "start_coord": [10, 10],
+        "reward_at": {"(16, 16)": 1},
+        "success_probability": 0.95
     },
     "horizon": 20,
     "gamma": 0.99,
