@@ -1,3 +1,4 @@
+import time
 import timeit
 from functools import partial
 from pathlib import Path
@@ -66,6 +67,7 @@ def plot_2d_occupancies(data: pd.DataFrame, env: GridWorld, out_dir: Path) -> No
     v_max = data["occupancy"].max()
     algorithms = data.algorithm.unique()
 
+    sns.set_style("whitegrid", {'axes.grid' : False})
     fig = plt.figure(figsize=(10, 7))
     rows = len(algorithms) // 2
     cols = np.ceil(len(algorithms) / rows).astype(int)
@@ -218,9 +220,8 @@ def newton_iteration(f: Callable, df: Callable, eps: float, x0: float = None, a:
     return x_next
 
 
-
 def binary_search(f: Callable, eps: float, a: float, b: float = None,
-                  display: bool = False) -> float:
+                  display: bool = False, max_iterations: int = 100) -> float:
     """
     Binary search the zero of a non-increasing function.
     :param f: the function
@@ -230,13 +231,12 @@ def binary_search(f: Callable, eps: float, a: float, b: float = None,
     :param display: display the function
     :return: x such that |f(x)| < eps
     """
-    f_x = np.inf
     x = np.nan
     find_b = False
     if b is None:
         find_b = True
         b = a + 1
-    while abs(f_x) > eps:
+    for _ in range(max_iterations):
         x = (a + b) / 2
         f_x = f(x)
 
@@ -261,14 +261,13 @@ def binary_search(f: Callable, eps: float, a: float, b: float = None,
 
 
 @jit(nopython=True)
-def binary_search_theta(q_p, f_p, c, eps: float, a: float, b: float = None):
-    f_x = np.inf
+def binary_search_theta(q_p, f_p, c, eps: float, a: float, b: float = None, max_iterations: int = 100):
     x = np.nan
     find_b = False
     if b is None:
         find_b = True
         b = a + 1
-    while abs(f_x) > eps:
+    for _ in range(max_iterations):
         x = (a + b) / 2
         l_m_f_p = x - f_p
         f_x = q_p @ np.log(l_m_f_p) + np.log(q_p @ (1 / l_m_f_p)) - c
@@ -279,6 +278,8 @@ def binary_search_theta(q_p, f_p, c, eps: float, a: float, b: float = None):
         else:
             b = x
             find_b = False
+        if abs(f_x) <= eps:
+            break
     return x
 
 
@@ -306,6 +307,8 @@ def max_expectation_under_constraint(f: np.ndarray, q: np.ndarray, c: float, eps
     :param display: plot the function
     :return: the argmax p*
     """
+    if np.all(q == 0):
+        q = np.ones(q.size) / q.size
     x_plus = np.where(q > 0)
     x_zero = np.where(q == 0)
     p_star = np.zeros(q.shape)
@@ -324,7 +327,7 @@ def max_expectation_under_constraint(f: np.ndarray, q: np.ndarray, c: float, eps
             p_star[x_zero] = 1.0 * (f[x_zero] == np.amax(f[x_zero]))
             p_star[x_zero] *= z / p_star[x_zero].sum()
     if lambda_ is None:
-        if np.all(f_p == f_p[0]):
+        if np.isclose(f_p, f_p[0]).all():
             return q
         else:
             # Binary search seems slightly (10%) faster than newton
@@ -365,6 +368,17 @@ def random_argmax(x: np.ndarray) -> int:
 def random_dist(n):
     q = np.random.random(n)
     return q / q.sum()
+
+
+def timing(f):
+    def wrap(*args):
+        time1 = time.time()
+        ret = f(*args)
+        time2 = time.time()
+        print('{:s} function took {:.3f} ms'.format(f.__name__, (time2-time1)*1000.0))
+
+        return ret
+    return wrap
 
 
 if __name__ == "__main__":
