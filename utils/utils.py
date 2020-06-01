@@ -253,10 +253,15 @@ def binary_search(f: Callable, eps: float, a: float, b: float = None,
         if f_x > 0:
             a = x
             if find_b:
-                b *= 2
+                b = 2*max(b, 1)
         else:
             b = x
             find_b = False
+
+        if abs(f_x) <= eps:
+            break
+    else:
+        print("Error: Reached maximum iteration", b)
     return x
 
 
@@ -274,12 +279,15 @@ def binary_search_theta(q_p, f_p, c, eps: float, a: float, b: float = None, max_
         if f_x > 0:
             a = x
             if find_b:
-                b *= 2
+                b = 2*max(b, 1)
         else:
             b = x
             find_b = False
+
         if abs(f_x) <= eps:
             break
+    else:
+        print("Error: Reached maximum iteration", q_p, f_p, c)
     return x
 
 
