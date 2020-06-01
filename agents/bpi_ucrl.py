@@ -12,7 +12,7 @@ class BPI_UCRL(BaseAgent):
     """
     name: str = "BPI-UCRL"
     DELTA: float = 0.1
-    THRESHOLD: float = np.log(1/DELTA)
+    BETA: float = np.log(1/DELTA)
 
     def __init__(self, env: FiniteMDP, horizon: int, gamma: float, reward_known: bool = True,
                  transition_support_known: bool = False, **kwargs: dict) -> None:
@@ -45,36 +45,41 @@ class BPI_UCRL(BaseAgent):
         if not self.reward_known:
             self.total_reward[state, action] += reward
             self.reward_ucb[state, action] = kl_upper_bound(self.total_reward[state, action], self.N_sa[state, action],
-                                                            threshold=self.THRESHOLD)
+                                                            threshold=self.beta())
             self.reward_lcb[state, action] = kl_upper_bound(self.total_reward[state, action], self.N_sa[state, action],
-                                                            threshold=self.THRESHOLD)
+                                                            threshold=self.beta())
+
+    def beta(self):
+        S, A, H = self.S, self.A, self.H
+        return np.log(2*S*A*H/self.DELTA) + (S-1)*np.log(np.e*(1 + self.N_sa/(S-1)))
 
     # @timing
     def compute_value_bounds(self, lower: bool = False) -> None:
         S, A = self.q_ucb[0, :, :].shape
+        bonus = self.beta()/np.maximum(1, self.N_sa)
         for h, s, a in product(range(self.H-1, -1, -1), range(S), range(A)):
             # Empirical
             p_next = self.P_hat[s, a]
-            # UCB
-            next_v = self.v_ucb[h+1] if h < self.H-1 else np.zeros((S,))
-            if self.transition_support_known:
-                s_next = self.env.get_transition_support(s)
-                next_v = next_v[s_next]
-                p_next = p_next[s_next]
-            p_plus = max_expectation_under_constraint(next_v, p_next,
-                                                      self.THRESHOLD / np.maximum(self.N_sa[s, a], 1))
-            self.q_ucb[h, s, a] = self.reward_ucb[s, a] + self.gamma * p_plus @ next_v
-            self.v_ucb[h, s] = self.q_ucb[h, s].max()
-            # LCB
-            if lower:
-                next_v = self.v_lcb[h+1] if h < self.H-1 else np.zeros((S,))
+            self.q_ucb[h, s, a] = self.reward_ucb[s, a]
+            if h < self.H-1:
+                # UCB
+                next_v = self.v_ucb[h+1]
                 if self.transition_support_known:
                     s_next = self.env.get_transition_support(s)
                     next_v = next_v[s_next]
                     p_next = p_next[s_next]
-                p_minus = max_expectation_under_constraint(-next_v, p_next,
-                                                           self.THRESHOLD / np.maximum(self.N_sa[s, a], 1))
-                self.q_lcb[h, s, a] = self.reward_lcb[s, a] + self.gamma * p_minus @ next_v
+                p_plus = max_expectation_under_constraint(next_v, p_next, bonus[s, a])
+                self.q_ucb[h, s, a] += self.gamma * p_plus @ next_v
+            self.v_ucb[h, s] = self.q_ucb[h, s].max()
+            # LCB
+            if lower:
+                self.q_lcb[h, s, a] = self.reward_lcb[s, a]
+                if h < self.H-1:
+                    next_v = self.v_lcb[h+1]
+                    if self.transition_support_known:
+                        next_v = next_v[s_next]
+                    p_minus = max_expectation_under_constraint(-next_v, p_next, bonus[s, a])
+                    self.q_lcb[h, s, a] += self.gamma * p_minus @ next_v
                 self.v_lcb[h, s] = self.q_lcb[h, s].max()
 
     def run(self, total_samples: int) -> pd.DataFrame:
