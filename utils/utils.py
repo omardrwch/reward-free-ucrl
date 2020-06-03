@@ -26,8 +26,8 @@ def plot_error(data: pd.DataFrame, out_dir: Path) -> None:
     ax.set(xscale="log", yscale="log")
     sns.lineplot(x="samples", y="error", hue="algorithm", data=data, ax=ax)
     plt.xlabel("Number of samples")
-    plt.ylabel("$|\hat{V}^*(s_0) - V^*(s_0)|$")
-    # plt.title("$|\hat{V}^*(s_0) - V^*(s_0)|$ versus total number of samples")
+    plt.ylabel("$|\hat{V}^*(s_1) - V^*(s_1)|$")
+    # plt.title("$|\hat{V}^*(s_1) - V^*(s_1)|$ versus total number of samples")
     plt.savefig(out_dir / "approximation_error.pdf")
     plt.savefig(out_dir / "approximation_error.png")
     plt.show()
@@ -169,7 +169,7 @@ def kl_upper_bound(_sum: float, count: int, threshold: float = 1, eps: float = 1
 
 
 def newton_iteration(f: Callable, df: Callable, eps: float, x0: float = None, a: float = None, b: float = None,
-                     weight: float = 0.9, display: bool = False) -> float:
+                     weight: float = 0.9, display: bool = False, max_iterations: int = 100) -> float:
     """
         Run Newton Iteration to solve f(x) = 0, with x in [a, b]
     :param f: a function R -> R
@@ -189,7 +189,7 @@ def newton_iteration(f: Callable, df: Callable, eps: float, x0: float = None, a:
         return a
     x_next = x0
     iterations = 0
-    while abs(x - x_next) > eps:
+    while abs(x - x_next) > eps and iterations < max_iterations:
         iterations += 1
         x = x_next
 
@@ -204,7 +204,10 @@ def newton_iteration(f: Callable, df: Callable, eps: float, x0: float = None, a:
             plt.show()
 
         f_x = f(x)
-        df_x = df(x)
+        try:
+            df_x = df(x)
+        except ZeroDivisionError:
+            df_x = (f_x - f(x-eps))/eps
         if df_x != 0:
             x_next = x - f_x / df_x
 
