@@ -19,6 +19,8 @@ def main():
         params["n_samples_list"] = np.logspace(*params["complexity_samples_logspace"], dtype=np.int32)
     if "complexity_n_runs" in params:
         params["n_runs"] = params["complexity_n_runs"]
+    params["log_all_episodes"] = True
+
     compute(params)
     plot(params)
 

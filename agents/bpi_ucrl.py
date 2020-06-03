@@ -15,10 +15,11 @@ class BPI_UCRL(BaseAgent):
     BETA: float = np.log(1/DELTA)
 
     def __init__(self, env: FiniteMDP, horizon: int, gamma: float, reward_known: bool = True,
-                 transition_support_known: bool = False, **kwargs: dict) -> None:
+                 transition_support_known: bool = False, log_all_episodes: bool = False, **kwargs: dict) -> None:
         super().__init__(env, horizon, gamma)
         self.reward_known = reward_known
         self.transition_support_known = transition_support_known
+        self.log_all_episodes = log_all_episodes
         self.total_reward = None
         self.reward_ucb, self.reward_lcb = None, None
         self.q_ucb, self.q_lcb = None, None
@@ -84,23 +85,29 @@ class BPI_UCRL(BaseAgent):
 
     def run(self, total_samples: int) -> pd.DataFrame:
         self.reset()
-        np.set_printoptions(precision=2)
+        samples, errors, ucbs = [], [], []
         sample_count = 0
         while sample_count < total_samples:
+            # Run episode
             state = self.env.reset()
             for hh in range(self.H):
                 sample_count += 1
                 action = random_argmax(self.q_ucb[hh, state, :])
                 state = self.step(state, action)
-            self.compute_value_bounds()
 
-        self.compute_value_bounds(lower=True)
-        initial_state = self.env.reset()
+            # Compute upper (and lower?) bound
+            log_this_episode = self.log_all_episodes or sample_count >= total_samples
+            self.compute_value_bounds(lower=log_this_episode)
+
+            # Log results
+            if log_this_episode:
+                initial_state = self.env.reset()
+                samples.append(sample_count)
+                ucbs.append(self.v_ucb[0, initial_state] - self.v_lcb[0, initial_state])
+                errors.append(self.estimation_error())
         return pd.DataFrame({
-            "algorithm": self.name,
-            "samples": total_samples,
-            "error": self.estimation_error(),
-            "value-ucb": self.v_ucb[0, initial_state],
-            "value-lcb": self.v_lcb[0, initial_state],
-            "error-ucb": self.v_ucb[0, initial_state] - self.v_lcb[0, initial_state]
-        }, index=[0])
+            "algorithm": [self.name] * len(samples),
+            "samples": samples,
+            "error": errors,
+            "error-ucb": ucbs
+        })

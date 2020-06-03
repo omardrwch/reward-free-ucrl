@@ -1,10 +1,7 @@
 """
 Reward-Free UCRL (paper)
 """
-from typing import Union
-
 import numpy as np
-from typing import Tuple, List
 from numba import jit
 from agents.base_agent import BaseAgent
 import pandas as pd
@@ -20,10 +17,11 @@ class RF_UCRL(BaseAgent):
     DELTA: float = 0.1    # fixed value of delta, for simplicity
 
     def __init__(self, env: FiniteMDP, horizon: int, gamma: float, clip: bool, bonus_scale_factor: float,
-                 **kwargs: dict) -> None:
+                 log_all_episodes: bool = False, **kwargs: dict) -> None:
         super().__init__(env, horizon, gamma)
         self.clip = clip
         self.bonus_scale_factor = bonus_scale_factor
+        self.log_all_episodes = log_all_episodes
 
         # compute maximum value function for each step h
         self.v_max = np.zeros(self.H + 1)
@@ -60,10 +58,10 @@ class RF_UCRL(BaseAgent):
 
     def run(self, total_samples: int) -> pd.DataFrame:
         self.reset()
-        # explore and gather data
         sample_count = 0
+        samples, errors, ucbs = [], [], []
         while sample_count < total_samples:
-            # run episode
+            # Run episode
             state = self.env.reset()
             for hh in range(self.H):
                 sample_count += 1
@@ -74,10 +72,16 @@ class RF_UCRL(BaseAgent):
             bonus = np.sqrt(self.beta()/np.maximum(1, self.N_sa))
             self.compute_error_upper_bound(self.E, self.F, self.P_hat, self.H, self.gamma,
                                            bonus, self.v_max, self.clip, self.bonus_scale_factor)
-        initial_state = self.env.reset()
+
+            # Log data
+            if self.log_all_episodes or sample_count >= total_samples:
+                initial_state = self.env.reset()
+                samples.append(sample_count)
+                ucbs.append(self.F[0, initial_state])
+                errors.append(self.estimation_error())
         return pd.DataFrame({
-            "algorithm": self.name,
-            "samples": total_samples,
-            "error": self.estimation_error(),
-            "error-ucb": self.F[0, initial_state]
-        }, index=[0])
+            "algorithm": [self.name] * len(samples),
+            "samples": samples,
+            "error": errors,
+            "error-ucb": ucbs
+        })
