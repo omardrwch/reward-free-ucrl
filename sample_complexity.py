@@ -24,11 +24,11 @@ def main():
 
 
 def compute(params: dict) -> None:
-    path = params["out"] / 'rf_sample_complexity.csv'
+    path = params["out"] / 'rf_sample_complexity_{}.csv'.format(params["complexity_samples_logspace"][1])
     if not path.exists():
         data = experiment(RF_UCRL, params)
         data.to_csv(path)
-    bpi_path = params["out"] / 'bpi_sample_complexity.csv'
+    bpi_path = params["out"] / 'bpi_sample_complexity_{}.csv'.format(params["complexity_samples_logspace"][1])
     if not bpi_path.exists():
         data = experiment(BPI_UCRL, params)
         data.to_csv(bpi_path)
@@ -36,37 +36,58 @@ def compute(params: dict) -> None:
 
 def plot(params: dict) -> None:
     # extract data
-    data_rf = pd.read_csv(params["out"] / 'rf_sample_complexity.csv')
-    data_bpi = pd.read_csv(params["out"] / 'bpi_sample_complexity.csv')
+    data_bpi = pd.read_csv(params["out"] / 'bpi_sample_complexity_6_2.csv'.format(params["complexity_samples_logspace"][1]))
+    data_bpi["epsilon"] = data_bpi["error-ucb"]
+    print("Loaded BPI data")
+    data_rf = pd.read_csv(params["out"] / 'rf_sample_complexity_8.csv'.format(params["complexity_samples_logspace"][1]))
+    data_rf["epsilon"] = data_rf["error-ucb"] * 2
+    # data_rf = data_rf.iloc[::20, :]
+    print("Loaded RF data")
     data = pd.concat([data_rf, data_bpi], sort=False, ignore_index=True)
     data["error"] /= params["horizon"]
     data["error-ucb"] /= params["horizon"]
+    data["epsilon"] /= params["horizon"]
+    data["episodes"] = data["samples"] / params["horizon"]
 
-    plot_bins(data, out_dir=params["out"])
-    plot_error(data, out_dir=params["out"])
+    plot_bins(data, params["out"])
+    plot_error(data, params["out"])
     plt.show()
 
 
-def plot_bins(data, out_dir):
+def plot_bins(data, out_dir, n_bins=11):
     # plot with number of samples required for each epsilon
-    f, ax = plt.subplots()
-    data_bins = data.copy()
-    data_bins = data_bins[data_bins["error-ucb"].between(0.0, 1.0)]
-    error_bins = np.linspace(0, 1.0, 10)
-    for ii, ee in enumerate(error_bins[:-1]):
-        ee_min = ee
-        ee_max = error_bins[ii+1]-1e-8
-        data_bins.loc[data_bins["error-ucb"].between(ee, ee_max), "error-ucb"] = \
-            int(100*(ee_min+ee_max)/2.0)/100
-    ax.set(xscale="linear", yscale="log")
-    ax.yaxis.set_minor_locator(LogLocator(base=10, subs="all"))
-    ax.yaxis.grid(True, which='minor', linestyle='--')
-    sns.barplot(x="error-ucb", y="samples", data=data_bins,
-                errcolor="red", hue="algorithm", ax=ax)
-    plt.xlabel(r"$\varepsilon$")
-    plt.ylabel("Number of samples")
-    plt.savefig(out_dir / "error-bins.png")
-    plt.savefig(out_dir / "error-bins.pdf")
+    colours = {"BPI-UCRL": "Reds_r", "RF-UCRL": "Greens_r"}
+    for algorithm, df in data.groupby("algorithm"):
+        f, ax = plt.subplots()
+        data_bins = df.copy()
+        data_bins = data_bins[data_bins["epsilon"].between(0.0, 1.0)]
+        error_bins = np.linspace(0, 1.0, n_bins)
+        for ii, ee in enumerate(error_bins[:-1]):
+            ee_min = ee
+            ee_max = error_bins[ii+1]-1e-8
+            ee_avg = int(np.ceil(100*(ee_min+ee_max)/2.0))/100
+            data_bins.loc[data_bins["epsilon"].between(ee, ee_max), "epsilon"] = ee_avg
+
+            # Fill in empty bins with nan
+            if ee_avg not in data_bins["epsilon"]:
+                data_bins = data_bins.append({"algorithm": algorithm,
+                                      "samples": np.nan,
+                                      "epsilon": ee_avg}, ignore_index=True)
+
+        # Stopping times plot
+        sns.barplot(x="epsilon", y="episodes", data=data_bins, errcolor="red",
+                    palette=colours[algorithm], ax=ax)
+        ax.set(xscale="linear", yscale="log")
+        # Bound plot
+        x = np.linspace(0, n_bins-1, 200)
+        eps = np.maximum(x / (n_bins-1), 1e-4)
+        ax.plot(x, data_bins["episodes"].min()/eps**2, label=r"$\mathcal{O}(1/\varepsilon^2)$", linestyle="--")
+        plt.legend(loc='upper right')
+        plt.ylim([data["episodes"].min(), 1000*data["episodes"].max()])
+        plt.xlabel(r"$\varepsilon$")
+        plt.ylabel(r"Number of episodes")
+        plt.savefig(out_dir / "error-bins-{}.png".format(algorithm))
+        plt.savefig(out_dir / "error-bins-{}.pdf".format(algorithm))
 
 
 def plot_error(data, out_dir):
