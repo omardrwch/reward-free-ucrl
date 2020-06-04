@@ -4,3 +4,4 @@ pandas
 joblib
 gym
 numba
+seaborn
