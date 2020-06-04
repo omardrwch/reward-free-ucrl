@@ -14,5 +14,5 @@
     "samples_logspace": [2, 4.5, 11],
     "occupancies_samples": 5000,
     "complexity_samples_logspace": [6, 6, 1],
-    "complexity_n_runs": 20
+    "complexity_n_runs": 48
 }

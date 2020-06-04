@@ -1,6 +1,10 @@
 # Adaptive Reward-Free Exploration
 
+This repository contains the source code used for the paper *Adaptive Reward-Free Exploration*.
+
 ## Installation
+
+Install the required packages for Python 3 with:
 
 ```pip install requirements.txt```
 
