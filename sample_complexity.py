@@ -38,12 +38,11 @@ def compute(params: dict) -> None:
 
 def plot(params: dict) -> None:
     # extract data
-    data_bpi = pd.read_csv(params["out"] / 'bpi_sample_complexity_6_2.csv'.format(params["complexity_samples_logspace"][1]))
+    data_bpi = pd.read_csv(params["out"] / 'bpi_sample_complexity_{}.csv'.format(params["complexity_samples_logspace"][1]))
     data_bpi["epsilon"] = data_bpi["error-ucb"]
     print("Loaded BPI data")
-    data_rf = pd.read_csv(params["out"] / 'rf_sample_complexity_8.csv'.format(params["complexity_samples_logspace"][1]))
+    data_rf = pd.read_csv(params["out"] / 'rf_sample_complexity_{}.csv'.format(params["complexity_samples_logspace"][1]))
     data_rf["epsilon"] = data_rf["error-ucb"] * 2
-    # data_rf = data_rf.iloc[::20, :]
     print("Loaded RF data")
     data = pd.concat([data_rf, data_bpi], sort=False, ignore_index=True)
     data["error"] /= params["horizon"]
@@ -102,7 +101,6 @@ def plot_error(data, out_dir):
         sns.lineplot(x="samples", y="error-ucb", data=df, ax=ax, label="Error (UCB) of " + name)
     plt.xlabel("Number of samples")
     plt.ylabel("Error (normalized by $H$)")
-    # plt.title(r"$\max_a E_0(s_1, a) / H$")
     plt.savefig(out_dir / "error-samples.png")
     plt.savefig(out_dir / "error-samples.pdf")
 
